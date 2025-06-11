@@ -565,8 +565,8 @@ public:
   bool AtomicFineGrainedMemory = false;
   bool AtomicIgnoreDenormalMode = false;
 
-  /// Name of the exec charset to convert the internal charset to.
-  std::string ExecCharset;
+  /// Name of the execution encoding to convert the internal encoding to.
+  std::string ExecEncoding;
 
   LangOptions();
 
