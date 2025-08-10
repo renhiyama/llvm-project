@@ -579,12 +579,12 @@ Error GenericKernelTy::launch(GenericDeviceTy &GenericDevice, void **ArgPtrs,
   uint32_t TotalBlockMemSize = StaticBlockMemSize + DynBlockMemSize;
   if (StaticBlockMemSize > MaxBlockMemSize)
     return Plugin::error(ErrorCode::INVALID_ARGUMENT,
-                         "Static block memory size exceeds maximum");
+                         "static block memory size exceeds maximum");
   else if (!KernelArgs.Flags.AllowDynCGroupMemFallback &&
            TotalBlockMemSize > MaxBlockMemSize)
     return Plugin::error(
         ErrorCode::INVALID_ARGUMENT,
-        "Static and dynamic block memory size exceeds maximum");
+        "static and dynamic block memory size exceeds maximum");
 
   void *FallbackBlockMem = nullptr;
   if (DynBlockMemSize && (!GenericDevice.hasNativeBlockSharedMem() ||

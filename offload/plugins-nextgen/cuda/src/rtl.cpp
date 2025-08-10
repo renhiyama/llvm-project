@@ -151,7 +151,7 @@ struct CUDAKernelTy : public GenericKernelTy {
     int SharedMemSize;
     Res = cuFuncGetAttribute(&SharedMemSize,
                              CU_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES, Func);
-    if (auto Err = Plugin::check(Res, "Error in cuFuncGetAttribute: %s"))
+    if (auto Err = Plugin::check(Res, "error in cuFuncGetAttribute: %s"))
       return Err;
 
     StaticBlockMemSize = SharedMemSize;
@@ -1321,6 +1321,10 @@ Error CUDAKernelTy::launchImpl(GenericDeviceTy &GenericDevice,
   // whenever there is a kernel running and let it sleep otherwise.
   if (GenericDevice.getRPCServer())
     GenericDevice.Plugin.getRPCServer().Thread->notify();
+
+  // Increase to the requested dynamic memory size for the device if needed.
+  DynBlockMemSize =
+      std::max(DynBlockMemSize, GenericDevice.getDynamicMemorySize());
 
   // In case we require more memory than the current limit.
   if (DynBlockMemSize >= MaxDynBlockMemSize) {
