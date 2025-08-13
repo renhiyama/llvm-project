@@ -5368,8 +5368,9 @@ SmallVector<SDValue, 8> SelectionDAGBuilder::getTargetIntrinsicOperands(
     }
   }
 
-  if (auto Bundle = I.getOperandBundle(LLVMContext::OB_convergencectrl)) {
-    auto *Token = Bundle->Inputs[0].get();
+  if (std::optional<OperandBundleUse> Bundle =
+          I.getOperandBundle(LLVMContext::OB_convergencectrl)) {
+    Value *Token = Bundle->Inputs[0].get();
     SDValue ConvControlToken = getValue(Token);
     assert(Ops.back().getValueType() != MVT::Glue &&
            "Did not expected another glue node here.");
@@ -5396,9 +5397,10 @@ SDVTList SelectionDAGBuilder::getTargetIntrinsicVTList(const CallBase &I,
 
 /// Get an INTRINSIC node for a target intrinsic which does not touch touch
 /// memory.
-SDValue SelectionDAGBuilder::getTargetNonMemIntrinsicNode(
-    const CallBase &I, bool HasChain, SmallVector<SDValue, 8> &Ops,
-    SDVTList &VTs) {
+SDValue SelectionDAGBuilder::getTargetNonMemIntrinsicNode(const CallBase &I,
+                                                          bool HasChain,
+                                                          ArrayRef<SDValue> Ops,
+                                                          SDVTList &VTs) {
   if (!HasChain)
     return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, getCurSDLoc(), VTs, Ops);
   if (!I.getType()->isVoidTy())

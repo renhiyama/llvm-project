@@ -2803,17 +2803,17 @@ bool IRTranslator::translateCall(const User &U, MachineIRBuilder &MIRBuilder) {
   TargetLowering::IntrinsicInfo Info;
   bool IsTgtMemIntrinsic = TLI->getTgtMemIntrinsic(Info, CI, *MF, ID);
 
-  return translateTargetIntrinsic(CI, ID, MIRBuilder,
-                                  IsTgtMemIntrinsic ? &Info : nullptr);
+  return translateIntrinsic(CI, ID, MIRBuilder,
+                            IsTgtMemIntrinsic ? &Info : nullptr);
 }
 
-/// Translate a call to a target intrinsic.
+/// Translate a call to an intrinsic.
 /// Depending on whether TLI->getTgtMemIntrinsic() is true, TgtMemIntrinsicInfo
 /// is a pointer to the correspondingly populated IntrinsicInfo object.
 /// Otherwise, this pointer is null.
-bool IRTranslator::translateTargetIntrinsic(
+bool IRTranslator::translateIntrinsic(
     const CallBase &CB, Intrinsic::ID ID, MachineIRBuilder &MIRBuilder,
-    TargetLowering::IntrinsicInfo *TgtMemIntrinsicInfo) {
+    const TargetLowering::IntrinsicInfo *TgtMemIntrinsicInfo) {
   ArrayRef<Register> ResultRegs;
   if (!CB.getType()->isVoidTy())
     ResultRegs = getOrCreateVRegs(CB);
@@ -2869,11 +2869,12 @@ bool IRTranslator::translateTargetIntrinsic(
     // TODO: We currently just fallback to address space 0 if getTgtMemIntrinsic
     //       didn't yield anything useful.
     MachinePointerInfo MPI;
-    if (TgtMemIntrinsicInfo->ptrVal)
+    if (TgtMemIntrinsicInfo->ptrVal) {
       MPI = MachinePointerInfo(TgtMemIntrinsicInfo->ptrVal,
                                TgtMemIntrinsicInfo->offset);
-    else if (TgtMemIntrinsicInfo->fallbackAddressSpace)
+    } else if (TgtMemIntrinsicInfo->fallbackAddressSpace) {
       MPI = MachinePointerInfo(*TgtMemIntrinsicInfo->fallbackAddressSpace);
+    }
     MIB.addMemOperand(MF->getMachineMemOperand(
         MPI, TgtMemIntrinsicInfo->flags, MemTy, Alignment, CB.getAAMetadata(),
         /*Ranges=*/nullptr, TgtMemIntrinsicInfo->ssid,

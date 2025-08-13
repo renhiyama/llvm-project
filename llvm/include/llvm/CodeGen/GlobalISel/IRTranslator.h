@@ -297,9 +297,9 @@ private:
   /// \pre \p U is a call instruction.
   bool translateCall(const User &U, MachineIRBuilder &MIRBuilder);
 
-  bool translateTargetIntrinsic(
+  bool translateIntrinsic(
       const CallBase &CB, Intrinsic::ID ID, MachineIRBuilder &MIRBuilder,
-      TargetLowering::IntrinsicInfo *TgtMemIntrinsicInfo = nullptr);
+      const TargetLowering::IntrinsicInfo *TgtMemIntrinsicInfo = nullptr);
 
   /// When an invoke or a cleanupret unwinds to the next EH pad, there are
   /// many places it could ultimately go. In the IR, we have a single unwind
