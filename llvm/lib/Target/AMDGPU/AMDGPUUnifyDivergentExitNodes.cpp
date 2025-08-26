@@ -260,7 +260,7 @@ bool AMDGPUUnifyDivergentExitNodesImpl::run(Function &F, DominatorTree *DT,
       if (HasDivergentExitBlock)
         UnreachableBlocks.push_back(BB);
     } else if (BranchInst *BI = dyn_cast<BranchInst>(BB->getTerminator())) {
-      if (DummyReturnBB == nullptr)
+      if (!DummyReturnBB)
         DummyReturnBB = createDummyReturnBlock(F, ReturningBlocks);
 
       if (BI->isUnconditional()) {
@@ -275,7 +275,7 @@ bool AMDGPUUnifyDivergentExitNodesImpl::run(Function &F, DominatorTree *DT,
       }
       Changed = true;
     } else if (CallBrInst *CBI = dyn_cast<CallBrInst>(BB->getTerminator())) {
-      if (DummyReturnBB == nullptr)
+      if (!DummyReturnBB)
         DummyReturnBB = createDummyReturnBlock(F, ReturningBlocks);
 
       handleNBranch(F, BB, CBI, DummyReturnBB, Updates);

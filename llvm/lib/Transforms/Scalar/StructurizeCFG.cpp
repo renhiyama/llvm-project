@@ -1396,7 +1396,12 @@ bool StructurizeCFG::makeUniformRegion(Region *R, UniformityInfo &UA) {
 /// Run the transformation for each region found
 bool StructurizeCFG::run(Region *R, DominatorTree *DT,
                          const TargetTransformInfo *TTI) {
-  // CallBr and its corresponding blocks must not be modified by this pass.
+  // CallBr and its corresponding direct target blocks are for now ignored by
+  // this pass. This is not a limitation for the currently intended uses cases
+  // of callbr in the AMDGPU backend (cf.
+  // https://discourse.llvm.org/t/rfc-add-callbr-intrinsic-support/86087).
+  // Parent and child regions are not affected by this (current) restriction.
+  // See `llvm/test/Transforms/StructurizeCFG/callbr.ll` for details.
   if (R->isTopLevelRegion() || isa<CallBrInst>(R->getEntry()->getTerminator()))
     return false;
 
