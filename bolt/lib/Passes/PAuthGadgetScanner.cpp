@@ -1398,7 +1398,7 @@ shouldReportUnsafeTailCall(const BinaryContext &BC, const BinaryFunction &BF,
   }
 
   if (BC.MIB->isSafeJumpTableBranchForPtrAuth(Inst)) {
-    LLVM_DEBUG({ dbgs() << "  Safe jump table detected, skipping.\n"; });
+    LLVM_DEBUG(dbgs() << "  Safe jump table detected, skipping.\n");
     return std::nullopt;
   }
 
@@ -1433,7 +1433,7 @@ shouldReportCallGadget(const BinaryContext &BC, const MCInstReference &Inst,
     return std::nullopt;
 
   if (BC.MIB->isSafeJumpTableBranchForPtrAuth(Inst)) {
-    LLVM_DEBUG({ dbgs() << "  Safe jump table detected, skipping.\n"; });
+    LLVM_DEBUG(dbgs() << "  Safe jump table detected, skipping.\n");
     return std::nullopt;
   }
 
