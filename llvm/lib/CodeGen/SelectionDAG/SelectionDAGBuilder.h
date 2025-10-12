@@ -717,8 +717,9 @@ private:
       const CallBase &I, bool HasChain, bool OnlyLoad,
       TargetLowering::IntrinsicInfo *TgtMemIntrinsicInfo = nullptr);
   SDVTList getTargetIntrinsicVTList(const CallBase &I, bool HasChain);
-  SDValue getTargetNonMemIntrinsicNode(const CallBase &I, bool HasChain,
-                                       ArrayRef<SDValue> Ops, SDVTList &VTs);
+  SDValue getTargetNonMemIntrinsicNode(const Type &IntrinsicVT, bool HasChain,
+                                       ArrayRef<SDValue> Ops,
+                                       const SDVTList &VTs);
   SDValue handleTargetIntrinsicRet(const CallBase &I, bool HasChain,
                                    bool OnlyLoad, SDValue Result);
 };

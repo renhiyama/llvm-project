@@ -5373,7 +5373,7 @@ SmallVector<SDValue, 8> SelectionDAGBuilder::getTargetIntrinsicOperands(
     Value *Token = Bundle->Inputs[0].get();
     SDValue ConvControlToken = getValue(Token);
     assert(Ops.back().getValueType() != MVT::Glue &&
-           "Did not expected another glue node here.");
+           "Did not expect another glue node here.");
     ConvControlToken =
         DAG.getNode(ISD::CONVERGENCECTRL_GLUE, {}, MVT::Glue, ConvControlToken);
     Ops.push_back(ConvControlToken);
@@ -5395,20 +5395,18 @@ SDVTList SelectionDAGBuilder::getTargetIntrinsicVTList(const CallBase &I,
   return DAG.getVTList(ValueVTs);
 }
 
-/// Get an INTRINSIC node for a target intrinsic which does not touch touch
-/// memory.
-SDValue SelectionDAGBuilder::getTargetNonMemIntrinsicNode(const CallBase &I,
-                                                          bool HasChain,
-                                                          ArrayRef<SDValue> Ops,
-                                                          SDVTList &VTs) {
+/// Get an INTRINSIC node for a target intrinsic which does not touch memory.
+SDValue SelectionDAGBuilder::getTargetNonMemIntrinsicNode(
+    const Type &IntrinsicVT, bool HasChain, ArrayRef<SDValue> Ops,
+    const SDVTList &VTs) {
   if (!HasChain)
     return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, getCurSDLoc(), VTs, Ops);
-  if (!I.getType()->isVoidTy())
+  if (!IntrinsicVT.isVoidTy())
     return DAG.getNode(ISD::INTRINSIC_W_CHAIN, getCurSDLoc(), VTs, Ops);
   return DAG.getNode(ISD::INTRINSIC_VOID, getCurSDLoc(), VTs, Ops);
 }
 
-/// Set root, convert return type if necessaey and check alignment.
+/// Set root, convert return type if necessary and check alignment.
 SDValue SelectionDAGBuilder::handleTargetIntrinsicRet(const CallBase &I,
                                                       bool HasChain,
                                                       bool OnlyLoad,
@@ -5485,7 +5483,7 @@ void SelectionDAGBuilder::visitTargetIntrinsic(const CallInst &I,
     Result =
         DAG.getMemIntrinsicNode(Info.opc, getCurSDLoc(), VTs, Ops, MemVT, MMO);
   } else {
-    Result = getTargetNonMemIntrinsicNode(I, HasChain, Ops, VTs);
+    Result = getTargetNonMemIntrinsicNode(*I.getType(), HasChain, Ops, VTs);
   }
 
   Result = handleTargetIntrinsicRet(I, HasChain, OnlyLoad, Result);
