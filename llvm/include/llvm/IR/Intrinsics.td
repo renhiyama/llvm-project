@@ -1903,7 +1903,7 @@ def int_stepvector : DefaultAttrsIntrinsic<[llvm_anyvector_ty],
                                             [], [IntrNoMem]>;
 
 def int_reloc_none : DefaultAttrsIntrinsic<[], [llvm_metadata_ty],
-  [IntrNoMem]>;
+  [IntrNoMem, IntrHasSideEffects]>;
 
 //===---------------- Vector Predication Intrinsics --------------===//
 // Memory Intrinsics
