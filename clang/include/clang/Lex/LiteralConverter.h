@@ -16,7 +16,11 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/TextEncoding.h"
 
-enum ConversionAction { NoConversion, ToSystemEncoding, ToExecEncoding };
+enum ConversionAction {
+  CA_NoConversion,
+  CA_ToSystemEncoding,
+  CA_ToExecEncoding
+};
 
 class LiteralConverter {
   llvm::StringRef InternalEncoding;
