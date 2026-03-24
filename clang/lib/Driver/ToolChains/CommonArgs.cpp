@@ -1034,6 +1034,8 @@ void tools::addLTOOptions(const ToolChain &ToolChain, const ArgList &Args,
     const char *Suffix = ".dll";
 #elif defined(__APPLE__)
     const char *Suffix = ".dylib";
+#elif defined(__RovelStars__) || defined(__RUNIX__)
+    const char *Suffix = ".rdl";
 #else
     const char *Suffix = ".so";
 #endif

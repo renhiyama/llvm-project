@@ -149,6 +149,15 @@ if(LLVM_ENABLE_PER_TARGET_RUNTIME_DIR AND NOT APPLE)
   set(LIBUNWIND_LIBRARY_DIR ${LLVM_LIBRARY_OUTPUT_INTDIR}/${LIBUNWIND_TARGET_SUBDIR})
   set(LIBUNWIND_INSTALL_LIBRARY_DIR lib${LLVM_LIBDIR_SUFFIX}/${LIBUNWIND_TARGET_SUBDIR} CACHE STRING
       "Path where built libunwind libraries should be installed.")
+  if(RovelStars)
+    # RovelStars support: install CMake modules under its own directory
+    set(LIBUNWIND_INSTALL_LIBRARY_DIR ${CMAKE_INSTALL_LIBDIR}/${LIBUNWIND_TARGET_SUBDIR} CACHE STRING
+        "Path where built libunwind libraries should be installed."
+        )
+    set(LIBUNWIND_LIBRARY_DIR ${LLVM_LIBRARY_OUTPUT_INTDIR}/${CMAKE_INSTALL_LIBDIR}/${LIBUNWIND_TARGET_SUBDIR})
+    set(LIBUNWIND_INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE STRING
+        "Path where built libunwind headers should be installed.")
+  endif()
   unset(LIBUNWIND_TARGET_SUBDIR)
 else()
   if(LLVM_LIBRARY_OUTPUT_INTDIR)

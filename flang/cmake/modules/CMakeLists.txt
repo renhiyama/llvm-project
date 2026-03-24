@@ -10,6 +10,11 @@ set(FLANG_INSTALL_PACKAGE_DIR "${CMAKE_INSTALL_PACKAGEDIR}/flang" CACHE STRING
 # CMAKE_INSTALL_PACKAGEDIR might be absolute, so don't reuse below.
 set(flang_cmake_builddir "${CMAKE_BINARY_DIR}/lib${LLVM_LIBDIR_SUFFIX}/cmake/flang")
 
+if(RovelStars)
+  # RovelStars support: install CMake modules under its own directory
+  set(flang_cmake_builddir "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake/flang")
+endif()
+
 # Keep this in sync with llvm/cmake/CMakeLists.txt!
 set(LLVM_INSTALL_PACKAGE_DIR "${CMAKE_INSTALL_PACKAGEDIR}/llvm" CACHE STRING
   "Path for CMake subdirectory for LLVM (defaults to '${CMAKE_INSTALL_PACKAGEDIR}/llvm')")

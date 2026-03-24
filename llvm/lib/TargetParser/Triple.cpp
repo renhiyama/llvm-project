@@ -283,6 +283,8 @@ StringRef Triple::getVendorTypeName(VendorType Kind) {
   case SUSE: return "suse";
   case Meta:
     return "meta";
+  case RovelStars:
+    return "rovelstars";
   }
 
   llvm_unreachable("Invalid VendorType!");
@@ -420,6 +422,8 @@ StringRef Triple::getEnvironmentTypeName(EnvironmentType Kind) {
     return "llvm";
   case Mlibc:
     return "mlibc";
+  case Runix:
+    return "runix";
   }
 
   llvm_unreachable("Invalid EnvironmentType!");
@@ -709,6 +713,7 @@ static Triple::VendorType parseVendor(StringRef VendorName) {
       .Case("oe", Triple::OpenEmbedded)
       .Case("intel", Triple::Intel)
       .Case("meta", Triple::Meta)
+      .Case("rovelstars", Triple::RovelStars)
       .Default(Triple::UnknownVendor);
 }
 
@@ -819,6 +824,7 @@ static Triple::EnvironmentType parseEnvironment(StringRef EnvironmentName) {
       .StartsWith("rootsignature", Triple::RootSignature)
       .StartsWith("ohos", Triple::OpenHOS)
       .StartsWith("pauthtest", Triple::PAuthTest)
+      .StartsWith("runix", Triple::Runix)
       .StartsWith("llvm", Triple::LLVM)
       .StartsWith("mlibc", Triple::Mlibc)
       .StartsWith("mtia", Triple::MTIA)

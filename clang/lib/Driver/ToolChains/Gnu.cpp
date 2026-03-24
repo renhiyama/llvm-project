@@ -31,6 +31,7 @@
 #include "llvm/Support/VirtualFileSystem.h"
 #include "llvm/TargetParser/RISCVISAInfo.h"
 #include "llvm/TargetParser/TargetParser.h"
+#include <llvm/TargetParser/Triple.h>
 #include <system_error>
 
 using namespace clang::driver;
@@ -2098,6 +2099,7 @@ void Generic_GCC::GCCInstallationDetector::init(
   // Add some triples that we want to check first.
   CandidateTripleAliases.push_back(TargetTriple.str());
   std::string TripleNoVendor, BiarchTripleNoVendor;
+  //TODO: Add RovelStars vendor support for GCC
   if (TargetTriple.getVendor() == llvm::Triple::UnknownVendor) {
     StringRef OSEnv = TargetTriple.getOSAndEnvironmentName();
     if (TargetTriple.getEnvironment() == llvm::Triple::GNUX32)
@@ -2254,6 +2256,12 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
 
   if (TargetTriple.isOSHaiku()) {
     Prefixes.push_back(concat(SysRoot, "/boot/system/develop/tools"));
+    return;
+  }
+
+  if (TargetTriple.isRovelStars()) {
+    // All OS from RovelStars has gcc inside /Core/LibKit
+    Prefixes.push_back(concat(SysRoot, "/Core/LibKit"));
     return;
   }
 
@@ -2503,6 +2511,26 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
       break;
     }
     return;
+  }
+
+  // OSes from RovelStars uses custom directories for libraries. And they only support x86_64, Aarch64. They do not support 32 bit architectures.
+  if (TargetTriple.isRovelStars()) {
+    static const char *const RovelStarsLibDirs[] = {"/Core/LibKit"};
+    static const char *const Aarch64RovelStarsTriples[] = {"aarch64-rovellinux"};
+    static const char *const X86_64RovelStarsTriples[] = {"x86_64-rovellinux"};
+    LibDirs.append(begin(RovelStarsLibDirs), end(RovelStarsLibDirs));
+    BiarchLibDirs.append(begin(RovelStarsLibDirs), end(RovelStarsLibDirs));
+    switch (TargetTriple.getArch()) {
+    case llvm::Triple::aarch64:
+      TripleAliases.append(begin(Aarch64RovelStarsTriples), end(Aarch64RovelStarsTriples));
+      break;
+    case llvm::Triple::x86_64:
+      TripleAliases.append(begin(X86_64RovelStarsTriples), end(X86_64RovelStarsTriples));
+      break;
+    default:
+      // RovelStars does not support other architectures.
+      break;
+    }
   }
 
   // Android targets should not use GNU/Linux tools or libraries.

@@ -1,0 +1,27 @@
+#set(LLVM_TARGETS_TO_BUILD X86;AArch64 CACHE STRING "")
+set(LLVM_TARGETS_TO_BUILD X86 CACHE STRING "")
+set(CLANG_VENDOR RovelStars CACHE STRING "" FORCE)
+set(PACKAGE_VENDOR RovelStars CACHE STRING "" FORCE)
+set(CMAKE_BUILD_TYPE Release CACHE STRING "")
+set(LLVM_INCLUDE_DOCS OFF CACHE BOOL "")
+set(LLVM_INCLUDE_EXAMPLES OFF CACHE BOOL "")
+# TODO: Set report link to RovelStars bug report page
+# set(BUG_REPORT_URL "https://os.rovelstars.com/bugreport" CACHE STRING "")
+set(LIBUNWIND_INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}" CACHE STRING "" FORCE)
+set(LLD_INSTALL_PACKAGE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/lld" CACHE STRING "" FORCE)
+
+set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-linux-runix" CACHE STRING "" FORCE)
+#set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-linux-runix;aarch64-rovelstars-linux-runix" CACHE STRING "" FORCE)
+set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-linux-runix" CACHE STRING "" FORCE)
+
+set(LLVM_ENABLE_WERROR OFF CACHE BOOL "" FORCE)
+set(LLVM_INSTALL_PACKAGE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/llvm" CACHE STRING "" FORCE)
+set(LLVM_LIBRARY_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE STRING "" FORCE)
+set(LLVM_BINARY_DIR "${CMAKE_INSTALL_BINDIR}" CACHE STRING "" FORCE)
+
+# Use libstdc++, which is GNU's standard library implementation. This is a linux based system in the end, so using libc++ would be counterproductive.
+set(LLVM_ENABLE_LIBCXX OFF CACHE BOOL "" FORCE)
+set(LLVM_ENABLE_LLD ON CACHE BOOL "" FORCE)
+set(LLVM_OPTIMIZED_TABLEGEN ON CACHE BOOL "" FORCE)
+
+#set(BUILTINS_aarch64-rovelstars-linux-runix_CMAKE_SYSROOT "/usr/aarch64-linux-gnu/" CACHE PATH "" FORCE)

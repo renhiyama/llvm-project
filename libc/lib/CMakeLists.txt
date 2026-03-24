@@ -55,6 +55,10 @@ foreach(archive IN ZIP_LISTS
   endif()
 endforeach()
 
+if(RovelStars)
+  message(STATUS "RovelStars detected, TODO: REMOVE: LIBC_INSTALL_LIBRARY_DIR: ${LIBC_INSTALL_LIBRARY_DIR}")
+endif()
+
 install(
   TARGETS ${added_archive_targets}
   ARCHIVE DESTINATION ${LIBC_INSTALL_LIBRARY_DIR}

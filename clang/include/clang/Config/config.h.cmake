@@ -35,6 +35,12 @@
 /* Multilib basename for libdir. */
 #define CLANG_INSTALL_LIBDIR_BASENAME "${CLANG_INSTALL_LIBDIR_BASENAME}"
 
+/* Directory where cmake binaries are installed */
+#define CLANG_INSTALL_BINDIR "${CLANG_INSTALL_BINDIR}"
+
+/* Directory where cmake libraries are installed */
+#define CLANG_INSTALL_LIBDIR "${CLANG_INSTALL_LIBDIR}"
+
 /* Relative directory for resource files */
 #define CLANG_RESOURCE_DIR "${CLANG_RESOURCE_DIR}"
 

@@ -43,6 +43,7 @@ std::string Linux::getMultiarchTriple(const Driver &D,
   llvm::Triple::EnvironmentType TargetEnvironment =
       TargetTriple.getEnvironment();
   bool IsAndroid = TargetTriple.isAndroid();
+  bool IsRunix = TargetTriple.isRunix();
   bool IsMipsR6 = TargetTriple.getSubArch() == llvm::Triple::MipsSubArch_r6;
   bool IsMipsN32Abi = TargetTriple.getEnvironment() == llvm::Triple::GNUABIN32;
 
@@ -79,12 +80,16 @@ std::string Linux::getMultiarchTriple(const Driver &D,
   case llvm::Triple::x86_64:
     if (IsAndroid)
       return "x86_64-linux-android";
+    if (IsRunix)
+      return "x86_64-rovelstars-linux-runix";
     if (TargetEnvironment == llvm::Triple::GNUX32)
       return "x86_64-linux-gnux32";
     return "x86_64-linux-gnu";
   case llvm::Triple::aarch64:
     if (IsAndroid)
       return "aarch64-linux-android";
+    if (IsRunix)
+      return "aarch64-rovelstars-linux-runix";
     if (hasEffectiveTriple() &&
         getEffectiveTriple().getEnvironment() == llvm::Triple::PAuthTest)
       return "aarch64-linux-pauthtest";
@@ -178,6 +183,10 @@ std::string Linux::getMultiarchTriple(const Driver &D,
 }
 
 static StringRef getOSLibDir(const llvm::Triple &Triple, const ArgList &Args) {
+  if(Triple.isRovelStars()){
+    //TODO: Use CMAKE_INSTALL_LIBDIR variable from CMake if possible
+    return "Core/LibKit";
+  }
   if (Triple.isMIPS()) {
     // lib32 directory has a special meaning on MIPS targets.
     // It contains N32 ABI binaries. Use this folder if produce
@@ -733,7 +742,9 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
     break;
   }
   }
-
+  if (Triple.getVendor() == llvm::Triple::RovelStars) {
+    return "/Core/LibKit/" + Loader;
+  }
   if (Distro == Distro::Exherbo &&
       (Triple.getVendor() == llvm::Triple::UnknownVendor ||
        Triple.getVendor() == llvm::Triple::PC))
@@ -741,7 +752,7 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
   return "/" + LibDir + "/" + Loader;
 }
 
-void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,                                                                     
                                       ArgStringList &CC1Args) const {
   const Driver &D = getDriver();
   std::string SysRoot = computeSysRoot();
@@ -768,7 +779,13 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     addSystemInclude(DriverArgs, CC1Args, *Path);
 
   // LOCAL_INCLUDE_DIR
+  // for RovelStars OS, we use /Core/LibKit as system include path
+  if (getTriple().getVendor() == llvm::Triple::RovelStars) {
+    addSystemInclude(DriverArgs, CC1Args, "/Core/APIHeader");
+  }
+  else{
   addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/local/include"));
+  }
   // TOOL_INCLUDE_DIR
   AddMultilibIncludeArgs(DriverArgs, CC1Args);
 
