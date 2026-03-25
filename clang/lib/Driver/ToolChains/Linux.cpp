@@ -389,7 +389,7 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
 }
 
 ToolChain::RuntimeLibType Linux::GetDefaultRuntimeLibType() const {
-  if (getTriple().isAndroid())
+  if (getTriple().isAndroid() || getTriple().isOSRunixOS())
     return ToolChain::RLT_CompilerRT;
   return Generic_ELF::GetDefaultRuntimeLibType();
 }
@@ -401,9 +401,15 @@ unsigned Linux::GetDefaultDwarfVersion() const {
 }
 
 ToolChain::CXXStdlibType Linux::GetDefaultCXXStdlibType() const {
-  if (getTriple().isAndroid())
+  if (getTriple().isAndroid() || getTriple().isOSRunixOS())
     return ToolChain::CST_Libcxx;
   return ToolChain::CST_Libstdcxx;
+}
+
+ToolChain::UnwindLibType Linux::GetDefaultUnwindLibType() const {
+  if (getTriple().isOSRunixOS())
+    return ToolChain::UNW_CompilerRT;
+  return ToolChain::UNW_None;
 }
 
 bool Linux::HasNativeLLVMSupport() const { return true; }
@@ -841,6 +847,25 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
 
   if (!DriverArgs.hasArg(options::OPT_nobuiltininc) && getTriple().isMusl())
     addSystemInclude(DriverArgs, CC1Args, ResourceDirInclude);
+}
+
+void Linux::AddClangCXXStdlibIncludeArgs(
+    const llvm::opt::ArgList &DriverArgs,
+    llvm::opt::ArgStringList &CC1Args) const {
+  if (DriverArgs.hasArg(options::OPT_nostdlibinc) ||
+      DriverArgs.hasArg(options::OPT_nostdincxx))
+    return;
+
+  if (getTriple().isOSRunixOS()) {
+    // RunixOS uses libc++ — add the include path directly.
+    std::string SysRoot = computeSysRoot();
+    addSystemInclude(DriverArgs, CC1Args,
+                     concat(SysRoot, "/Core/APIHeader/c++/v1"));
+    return;
+  }
+
+  // Fall back to the generic implementation for other Linux targets.
+  Generic_GCC::AddClangCXXStdlibIncludeArgs(DriverArgs, CC1Args);
 }
 
 void Linux::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
