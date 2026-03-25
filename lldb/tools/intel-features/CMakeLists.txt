@@ -29,5 +29,10 @@ add_lldb_library(lldbIntelFeatures SHARED
     ${FEATURE_LIBS}
   )
 
-install(TARGETS lldbIntelFeatures
-  LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+if(RovelStars)
+  install(TARGETS lldbIntelFeatures
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+else()
+  install(TARGETS lldbIntelFeatures
+    LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+endif()

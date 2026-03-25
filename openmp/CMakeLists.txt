@@ -35,7 +35,10 @@ endif ()
 set(OPENMP_ENABLE_WERROR ${LLVM_ENABLE_WERROR})
 
 # When building in tree we install the runtime according to the LLVM settings.
-if(LLVM_ENABLE_PER_TARGET_RUNTIME_DIR AND NOT APPLE)
+if(RovelStars)
+  set(OPENMP_INSTALL_LIBDIR "${CMAKE_INSTALL_LIBDIR}" CACHE STRING
+      "Path where built OpenMP libraries should be installed.")
+elseif(LLVM_ENABLE_PER_TARGET_RUNTIME_DIR AND NOT APPLE)
   set(OPENMP_INSTALL_LIBDIR lib${LLVM_LIBDIR_SUFFIX}/${LLVM_DEFAULT_TARGET_TRIPLE} CACHE STRING
       "Path where built openmp libraries should be installed.")
 else()
