@@ -78,17 +78,19 @@ function(add_flang_library name)
     if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY OR ${name} STREQUAL "libflang"
         OR ARG_INSTALL_WITH_TOOLCHAIN)
       get_target_export_arg(${name} Flang export_to_flangtargets UMBRELLA flang-libraries)
-      install(TARGETS ${name}
-        COMPONENT ${name}
-        ${export_to_flangtargets}
-        LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX}
-        ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
-        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-      if (RovelStars)
+      if(RovelStars)
         install(TARGETS ${name}
           COMPONENT ${name}
+          ${export_to_flangtargets}
           LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
           ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+          RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+      else()
+        install(TARGETS ${name}
+          COMPONENT ${name}
+          ${export_to_flangtargets}
+          LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+          ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
           RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
       endif()
       if (NOT LLVM_ENABLE_IDE)

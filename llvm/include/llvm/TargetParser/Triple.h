@@ -204,7 +204,7 @@ public:
     Intel,
     Meta,
     RovelStars,
-    LastVendorType = Meta
+    LastVendorType = RovelStars
   };
   enum OSType {
     UnknownOS,
@@ -257,7 +257,8 @@ public:
     ChipStar,
     Firmware,
     QURT,
-    LastOSType = QURT
+    RunixOS,
+    LastOSType = RunixOS
   };
   enum EnvironmentType {
     UnknownEnvironment,
@@ -319,7 +320,6 @@ public:
     RootSignature,
     OpenHOS,
     Mlibc,
-    Runix, // RovelStars Runix environment
     PAuthTest,
     MTIA,
     LastEnvironmentType = MTIA
@@ -710,6 +710,11 @@ public:
     return getVendor() == Triple::RovelStars;
   }
 
+  /// Tests whether the OS is RunixOS.
+  bool isOSRunixOS() const {
+    return getOS() == Triple::RunixOS;
+  }
+
   /// Tests whether the OS is Windows.
   bool isOSWindows() const {
     return getOS() == Triple::Win32;
@@ -788,7 +793,7 @@ public:
   /// Tests whether the OS uses glibc.
   bool isOSGlibc() const {
     return (getOS() == Triple::Linux || getOS() == Triple::KFreeBSD ||
-            getOS() == Triple::Hurd) &&
+            getOS() == Triple::Hurd || getOS() == Triple::RunixOS) &&
            !isAndroid() && !isMusl() && getEnvironment() != Triple::PAuthTest;
   }
 
@@ -862,9 +867,6 @@ public:
 
   /// Tests whether the target is Android
   bool isAndroid() const { return getEnvironment() == Triple::Android; }
-
-  /// Tests whether the target is RunixOS
-  bool isRunix() const { return getEnvironment() == Triple::Runix; }
 
   bool isAndroidVersionLT(unsigned Major) const {
     assert(isAndroid() && "Not an Android triple!");

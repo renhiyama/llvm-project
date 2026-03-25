@@ -351,6 +351,8 @@ StringRef Triple::getOSTypeName(OSType Kind) {
     return "firmware";
   case QURT:
     return "qurt";
+  case RunixOS:
+    return "runixos";
   }
 
   llvm_unreachable("Invalid OSType");
@@ -422,8 +424,6 @@ StringRef Triple::getEnvironmentTypeName(EnvironmentType Kind) {
     return "llvm";
   case Mlibc:
     return "mlibc";
-  case Runix:
-    return "runix";
   }
 
   llvm_unreachable("Invalid EnvironmentType!");
@@ -769,6 +769,7 @@ static Triple::OSType parseOS(StringRef OSName) {
       .StartsWith("chipstar", Triple::ChipStar)
       .StartsWith("firmware", Triple::Firmware)
       .StartsWith("qurt", Triple::QURT)
+      .StartsWith("runixos", Triple::RunixOS)
       .Default(Triple::UnknownOS);
 }
 
@@ -824,7 +825,6 @@ static Triple::EnvironmentType parseEnvironment(StringRef EnvironmentName) {
       .StartsWith("rootsignature", Triple::RootSignature)
       .StartsWith("ohos", Triple::OpenHOS)
       .StartsWith("pauthtest", Triple::PAuthTest)
-      .StartsWith("runix", Triple::Runix)
       .StartsWith("llvm", Triple::LLVM)
       .StartsWith("mlibc", Triple::Mlibc)
       .StartsWith("mtia", Triple::MTIA)

@@ -20,12 +20,3 @@ if(NOT TARGET llvm-libc-common-utilities)
     target_compile_features(llvm-libc-common-utilities INTERFACE cxx_std_17)
   endif()
 endif()
-
-if(CMAKE_SYSTEM_NAME STREQUAL "RunixOS")
-  # RunixOS is treated as Linux-compatible for libc common utilities.
-  # Keep this detection non-intrusive; adjust behavior elsewhere if specific
-  # RunixOS handling is required.
-  message(STATUS "RunixOS detected: treating as Linux-compatible for libc common utils")
-else()
-  message(STATUS "RovelStars not found, using default libc-common-utilities")
-endif()

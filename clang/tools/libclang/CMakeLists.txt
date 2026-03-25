@@ -240,20 +240,20 @@ endif()
 # distribute.  Since the bindings are over libclang, which is installed
 # unbundled to the clang version, follow suit.
 foreach(PythonVersion ${CLANG_PYTHON_BINDINGS_VERSIONS})
-if(RovelStars)
-  install(DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../bindings/python/clang
-          COMPONENT
-            libclang-python-bindings
-          DESTINATION
-            "${CMAKE_INSTALL_LIBDIR}/python${PythonVersion}/site-packages")
+  if(RovelStars)
+    install(DIRECTORY
+              ${CMAKE_CURRENT_SOURCE_DIR}/../../bindings/python/clang
+            COMPONENT
+              libclang-python-bindings
+            DESTINATION
+              "${CMAKE_INSTALL_LIBDIR}/python${PythonVersion}/site-packages")
   else()
-  install(DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}/../../bindings/python/clang
-          COMPONENT
-            libclang-python-bindings
-          DESTINATION
-            "lib${LLVM_LIBDIR_SUFFIX}/python${PythonVersion}/site-packages")
+    install(DIRECTORY
+              ${CMAKE_CURRENT_SOURCE_DIR}/../../bindings/python/clang
+            COMPONENT
+              libclang-python-bindings
+            DESTINATION
+              "lib${LLVM_LIBDIR_SUFFIX}/python${PythonVersion}/site-packages")
   endif()
 endforeach()
 if(NOT LLVM_ENABLE_IDE)

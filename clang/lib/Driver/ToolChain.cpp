@@ -767,13 +767,20 @@ std::string ToolChain::buildCompilerRTBasename(const llvm::opt::ArgList &Args,
     Suffix = IsITANMSVCWindows ? ".obj" : ".o";
     break;
   case ToolChain::FT_Static:
-    Suffix = IsITANMSVCWindows ? ".lib" : ".a";
+    if (IsITANMSVCWindows)
+      Suffix = ".lib";
+    else if (TT.isOSRunixOS())
+      Suffix = ".ral";
+    else
+      Suffix = ".a";
     break;
   case ToolChain::FT_Shared:
     if (TT.isOSWindows())
       Suffix = TT.isOSCygMing() ? ".dll.a" : ".lib";
     else if (TT.isOSAIX())
       Suffix = ".a";
+    else if (TT.isOSRunixOS())
+      Suffix = ".rdl";
     else
       Suffix = ".so";
     break;

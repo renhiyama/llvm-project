@@ -356,10 +356,10 @@ protected:
     // Linux defines; list based off of gcc output
     DefineStd(Builder, "unix", Opts);
     DefineStd(Builder, "linux", Opts);
-    if (Triple.isRunix()) {
+    if (Triple.isOSRunixOS()) {
       Builder.defineMacro("__RovelStars__", "1");
       Builder.defineMacro("__RUNIX__", "1");
-      this->PlatformName = "runix";
+      this->PlatformName = "runixos";
     }
     if (Triple.isAndroid()) {
       Builder.defineMacro("__ANDROID__", "1");
@@ -713,7 +713,8 @@ public:
 };
 
 // AIX Target
-template <typename Target> class AIXTargetInfo : public OSTargetInfo<Target> {
+template <typename Target>
+class AIXTargetInfo : public OSTargetInfo<Target> {
 protected:
   void getOSDefines(const LangOptions &Opts, const llvm::Triple &Triple,
                     MacroBuilder &Builder) const override {

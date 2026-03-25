@@ -156,6 +156,7 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
     case llvm::Triple::Haiku:
       return std::make_unique<HaikuTargetInfo<AArch64leTargetInfo>>(Triple,
                                                                     Opts);
+    case llvm::Triple::RunixOS:
     case llvm::Triple::Linux:
       switch (Triple.getEnvironment()) {
       default:
@@ -609,6 +610,7 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
       return std::make_unique<DarwinX86_64TargetInfo>(Triple, Opts);
 
     switch (os) {
+    case llvm::Triple::RunixOS:
     case llvm::Triple::Linux: {
       switch (Triple.getEnvironment()) {
       default:

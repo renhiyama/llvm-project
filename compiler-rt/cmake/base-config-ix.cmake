@@ -122,9 +122,15 @@ if(NOT DEFINED COMPILER_RT_OS_DIR)
   endif()
 endif()
 if(LLVM_ENABLE_PER_TARGET_RUNTIME_DIR AND NOT APPLE)
-  set(COMPILER_RT_OUTPUT_LIBRARY_DIR
-    ${COMPILER_RT_OUTPUT_DIR}/${CMAKE_INSTALL_LIBDIR})
-  extend_path(default_install_path "${COMPILER_RT_INSTALL_PATH}" "${CMAKE_INSTALL_LIBDIR}")
+  if(RovelStars)
+    set(COMPILER_RT_OUTPUT_LIBRARY_DIR
+      ${COMPILER_RT_OUTPUT_DIR}/${CMAKE_INSTALL_LIBDIR})
+    extend_path(default_install_path "${COMPILER_RT_INSTALL_PATH}" "${CMAKE_INSTALL_LIBDIR}")
+  else()
+    set(COMPILER_RT_OUTPUT_LIBRARY_DIR
+      ${COMPILER_RT_OUTPUT_DIR}/lib)
+    extend_path(default_install_path "${COMPILER_RT_INSTALL_PATH}" lib)
+  endif()
   set(COMPILER_RT_INSTALL_LIBRARY_DIR "${default_install_path}" CACHE PATH
     "Path where built compiler-rt libraries should be installed.")
 else(LLVM_ENABLE_PER_TARGET_RUNTIME_DIR AND NOT APPLE)

@@ -236,15 +236,23 @@ std::optional<std::string> elf::findFromSearchPaths(Ctx &ctx, StringRef path) {
   return std::nullopt;
 }
 
-// This is for -l<basename>. We'll look for lib<basename>.so or lib<basename>.a from
-// search paths.
+// This is for -l<basename>. We'll look for lib<basename>.{so,rdl} or
+// lib<basename>.{a,ral} from search paths.
 std::optional<std::string> elf::searchLibraryBaseName(Ctx &ctx,
                                                       StringRef name) {
   for (StringRef dir : ctx.arg.searchPaths) {
-    if (!ctx.arg.isStatic)
+    if (!ctx.arg.isStatic) {
+      // Try RunixOS .rdl extension first, then standard .so.
+      if (std::optional<std::string> s =
+              findFile(ctx, dir, "lib" + name + ".rdl"))
+        return s;
       if (std::optional<std::string> s =
               findFile(ctx, dir, "lib" + name + ".so"))
         return s;
+    }
+    if (std::optional<std::string> s =
+            findFile(ctx, dir, "lib" + name + ".ral"))
+      return s;
     if (std::optional<std::string> s = findFile(ctx, dir, "lib" + name + ".a"))
       return s;
   }

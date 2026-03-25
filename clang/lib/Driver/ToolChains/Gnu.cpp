@@ -31,7 +31,6 @@
 #include "llvm/Support/VirtualFileSystem.h"
 #include "llvm/TargetParser/RISCVISAInfo.h"
 #include "llvm/TargetParser/TargetParser.h"
-#include <llvm/TargetParser/Triple.h>
 #include <system_error>
 
 using namespace clang::driver;
@@ -2099,7 +2098,6 @@ void Generic_GCC::GCCInstallationDetector::init(
   // Add some triples that we want to check first.
   CandidateTripleAliases.push_back(TargetTriple.str());
   std::string TripleNoVendor, BiarchTripleNoVendor;
-  //TODO: Add RovelStars vendor support for GCC
   if (TargetTriple.getVendor() == llvm::Triple::UnknownVendor) {
     StringRef OSEnv = TargetTriple.getOSAndEnvironmentName();
     if (TargetTriple.getEnvironment() == llvm::Triple::GNUX32)
@@ -2259,8 +2257,7 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
     return;
   }
 
-  if (TargetTriple.isRovelStars()) {
-    // All OS from RovelStars has gcc inside /Core/LibKit
+  if (TargetTriple.isOSRunixOS()) {
     Prefixes.push_back(concat(SysRoot, "/Core/LibKit"));
     return;
   }
@@ -2513,24 +2510,27 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
     return;
   }
 
-  // OSes from RovelStars uses custom directories for libraries. And they only support x86_64, Aarch64. They do not support 32 bit architectures.
-  if (TargetTriple.isRovelStars()) {
-    static const char *const RovelStarsLibDirs[] = {"/Core/LibKit"};
-    static const char *const Aarch64RovelStarsTriples[] = {"aarch64-rovellinux"};
-    static const char *const X86_64RovelStarsTriples[] = {"x86_64-rovellinux"};
-    LibDirs.append(begin(RovelStarsLibDirs), end(RovelStarsLibDirs));
-    BiarchLibDirs.append(begin(RovelStarsLibDirs), end(RovelStarsLibDirs));
+  if (TargetTriple.isOSRunixOS()) {
+    static const char *const RunixOSLibDirs[] = {"/Core/LibKit"};
+    static const char *const Aarch64RunixOSTriples[] = {
+        "aarch64-rovelstars-runixos"};
+    static const char *const X86_64RunixOSTriples[] = {
+        "x86_64-rovelstars-runixos"};
+    LibDirs.append(begin(RunixOSLibDirs), end(RunixOSLibDirs));
+    BiarchLibDirs.append(begin(RunixOSLibDirs), end(RunixOSLibDirs));
     switch (TargetTriple.getArch()) {
     case llvm::Triple::aarch64:
-      TripleAliases.append(begin(Aarch64RovelStarsTriples), end(Aarch64RovelStarsTriples));
+      TripleAliases.append(begin(Aarch64RunixOSTriples),
+                           end(Aarch64RunixOSTriples));
       break;
     case llvm::Triple::x86_64:
-      TripleAliases.append(begin(X86_64RovelStarsTriples), end(X86_64RovelStarsTriples));
+      TripleAliases.append(begin(X86_64RunixOSTriples),
+                           end(X86_64RunixOSTriples));
       break;
     default:
-      // RovelStars does not support other architectures.
       break;
     }
+    return;
   }
 
   // Android targets should not use GNU/Linux tools or libraries.

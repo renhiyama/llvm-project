@@ -14,12 +14,21 @@ macro(add_lld_library name)
 
   if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY)
     get_target_export_arg(${name} LLD export_to_lldtargets UMBRELLA lld-libraries)
-    install(TARGETS ${name}
-      COMPONENT ${name}
-      ${export_to_lldtargets}
-      LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX}
-      ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
-      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    if(RovelStars)
+      install(TARGETS ${name}
+        COMPONENT ${name}
+        ${export_to_lldtargets}
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    else()
+      install(TARGETS ${name}
+        COMPONENT ${name}
+        ${export_to_lldtargets}
+        LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+        ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    endif()
 
     if (NOT CMAKE_CONFIGURATION_TYPES)
       add_llvm_install_targets(install-${name}

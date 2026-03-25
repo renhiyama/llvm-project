@@ -1049,11 +1049,19 @@ macro(add_llvm_library name)
       else()
         get_target_export_arg(${name} LLVM export_to_llvmexports ${umbrella})
       endif()
-      install(TARGETS ${name}
-              ${export_to_llvmexports}
-              LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
-              ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
-              RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT ${name})
+      if(RovelStars)
+        install(TARGETS ${name}
+                ${export_to_llvmexports}
+                LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT ${name}
+                ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT ${name}
+                RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT ${name})
+      else()
+        install(TARGETS ${name}
+                ${export_to_llvmexports}
+                LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
+                ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
+                RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT ${name})
+      endif()
 
       if (NOT LLVM_ENABLE_IDE)
         add_llvm_install_targets(install-${name}
@@ -2402,7 +2410,11 @@ function(llvm_install_library_symlink name dest type)
     set(LLVM_LINK_OR_COPY copy)
   endif()
 
-  set(output_dir lib${LLVM_LIBDIR_SUFFIX})
+  if(RovelStars)
+    set(output_dir "${CMAKE_INSTALL_LIBDIR}")
+  else()
+    set(output_dir lib${LLVM_LIBDIR_SUFFIX})
+  endif()
   if((WIN32 OR CYGWIN) AND "${type}" STREQUAL "SHARED")
     set(output_dir "${CMAKE_INSTALL_BINDIR}")
   endif()
@@ -2686,8 +2698,13 @@ function(llvm_setup_rpath name)
     # FIXME: update this when there is better solution.
     set(_install_rpath "${LLVM_LIBRARY_OUTPUT_INTDIR}" "${CMAKE_INSTALL_PREFIX}/lib${LLVM_LIBDIR_SUFFIX}" ${extra_libdir})
   elseif(UNIX)
-    set(_build_rpath "\$ORIGIN/../lib${LLVM_LIBDIR_SUFFIX}" ${extra_libdir})
-    set(_install_rpath "\$ORIGIN/../lib${LLVM_LIBDIR_SUFFIX}")
+    if(RovelStars)
+      set(_build_rpath "\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}" ${extra_libdir})
+      set(_install_rpath "\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+    else()
+      set(_build_rpath "\$ORIGIN/../lib${LLVM_LIBDIR_SUFFIX}" ${extra_libdir})
+      set(_install_rpath "\$ORIGIN/../lib${LLVM_LIBDIR_SUFFIX}")
+    endif()
     if("${CMAKE_SYSTEM_NAME}" MATCHES "(FreeBSD|DragonFly)")
       set_property(TARGET ${name} APPEND_STRING PROPERTY
                    LINK_FLAGS " -Wl,-z,origin ")

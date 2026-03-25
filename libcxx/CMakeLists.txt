@@ -419,8 +419,13 @@ set(LIBCXX_INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}/c++/v1" CACHE STRING
     "Path where target-agnostic libc++ headers should be installed.")
 set(LIBCXX_INSTALL_RUNTIME_DIR "${CMAKE_INSTALL_BINDIR}" CACHE STRING
     "Path where built libc++ runtime libraries should be installed.")
-set(LIBCXX_INSTALL_MODULES_DIR "${CMAKE_INSTALL_DATADIR}/libc++/v1" CACHE STRING
-    "Path where target-agnostic libc++ module source files should be installed.")
+if(RovelStars)
+  set(LIBCXX_INSTALL_MODULES_DIR "${CMAKE_INSTALL_DATADIR}/libc++/v1" CACHE STRING
+      "Path where target-agnostic libc++ module source files should be installed.")
+else()
+  set(LIBCXX_INSTALL_MODULES_DIR "share/libc++/v1" CACHE STRING
+      "Path where target-agnostic libc++ module source files should be installed.")
+endif()
 
 set(LIBCXX_SHARED_OUTPUT_NAME "c++" CACHE STRING "Output name for the shared libc++ runtime library.")
 set(LIBCXX_STATIC_OUTPUT_NAME "c++" CACHE STRING "Output name for the static libc++ runtime library.")
@@ -435,8 +440,13 @@ if(LLVM_ENABLE_PER_TARGET_RUNTIME_DIR AND NOT APPLE)
   set(LIBCXX_GENERATED_INCLUDE_DIR "${LLVM_BINARY_DIR}/include/c++/v1")
   set(LIBCXX_GENERATED_MODULE_DIR "${LLVM_BINARY_DIR}/modules/c++/v1")
   set(LIBCXX_GENERATED_INCLUDE_TARGET_DIR "${LLVM_BINARY_DIR}/include/${LIBCXX_TARGET_SUBDIR}/c++/v1")
-  set(LIBCXX_INSTALL_LIBRARY_DIR ${CMAKE_INSTALL_LIBDIR}${LLVM_LIBDIR_SUFFIX}/${LIBCXX_TARGET_SUBDIR} CACHE STRING
-      "Path where built libc++ libraries should be installed.")
+  if(RovelStars)
+    set(LIBCXX_INSTALL_LIBRARY_DIR ${CMAKE_INSTALL_LIBDIR}/${LIBCXX_TARGET_SUBDIR} CACHE STRING
+        "Path where built libc++ libraries should be installed.")
+  else()
+    set(LIBCXX_INSTALL_LIBRARY_DIR lib${LLVM_LIBDIR_SUFFIX}/${LIBCXX_TARGET_SUBDIR} CACHE STRING
+        "Path where built libc++ libraries should be installed.")
+  endif()
   set(LIBCXX_INSTALL_INCLUDE_TARGET_DIR "${CMAKE_INSTALL_INCLUDEDIR}/${LIBCXX_TARGET_SUBDIR}/c++/v1" CACHE STRING
       "Path where target-specific libc++ headers should be installed.")
   unset(LIBCXX_TARGET_SUBDIR)
@@ -446,13 +456,22 @@ else()
     set(LIBCXX_GENERATED_INCLUDE_DIR "${LLVM_BINARY_DIR}/include/c++/v1")
     set(LIBCXX_GENERATED_MODULE_DIR "${LLVM_BINARY_DIR}/modules/c++/v1")
   else()
-    set(LIBCXX_LIBRARY_DIR ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}${LIBCXX_LIBDIR_SUFFIX})
+    if(RovelStars)
+      set(LIBCXX_LIBRARY_DIR ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+    else()
+      set(LIBCXX_LIBRARY_DIR ${CMAKE_BINARY_DIR}/lib${LIBCXX_LIBDIR_SUFFIX})
+    endif()
     set(LIBCXX_GENERATED_INCLUDE_DIR "${CMAKE_BINARY_DIR}/include/c++/v1")
     set(LIBCXX_GENERATED_MODULE_DIR "${CMAKE_BINARY_DIR}/modules/c++/v1")
   endif()
   set(LIBCXX_GENERATED_INCLUDE_TARGET_DIR "${LIBCXX_GENERATED_INCLUDE_DIR}")
-  set(LIBCXX_INSTALL_LIBRARY_DIR ${CMAKE_INSTALL_LIBDIR}${LIBCXX_LIBDIR_SUFFIX} CACHE STRING
-      "Path where built libc++ libraries should be installed.")
+  if(RovelStars)
+    set(LIBCXX_INSTALL_LIBRARY_DIR ${CMAKE_INSTALL_LIBDIR} CACHE STRING
+        "Path where built libc++ libraries should be installed.")
+  else()
+    set(LIBCXX_INSTALL_LIBRARY_DIR lib${LIBCXX_LIBDIR_SUFFIX} CACHE STRING
+        "Path where built libc++ libraries should be installed.")
+  endif()
   set(LIBCXX_INSTALL_INCLUDE_TARGET_DIR "${LIBCXX_INSTALL_INCLUDE_DIR}" CACHE STRING
       "Path where target-specific libc++ headers should be installed.")
 endif()

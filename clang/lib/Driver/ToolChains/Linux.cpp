@@ -43,7 +43,7 @@ std::string Linux::getMultiarchTriple(const Driver &D,
   llvm::Triple::EnvironmentType TargetEnvironment =
       TargetTriple.getEnvironment();
   bool IsAndroid = TargetTriple.isAndroid();
-  bool IsRunix = TargetTriple.isRunix();
+  bool IsRunixOS = TargetTriple.isOSRunixOS();
   bool IsMipsR6 = TargetTriple.getSubArch() == llvm::Triple::MipsSubArch_r6;
   bool IsMipsN32Abi = TargetTriple.getEnvironment() == llvm::Triple::GNUABIN32;
 
@@ -80,16 +80,16 @@ std::string Linux::getMultiarchTriple(const Driver &D,
   case llvm::Triple::x86_64:
     if (IsAndroid)
       return "x86_64-linux-android";
-    if (IsRunix)
-      return "x86_64-rovelstars-linux-runix";
+    if (IsRunixOS)
+      return "x86_64-rovelstars-runixos";
     if (TargetEnvironment == llvm::Triple::GNUX32)
       return "x86_64-linux-gnux32";
     return "x86_64-linux-gnu";
   case llvm::Triple::aarch64:
     if (IsAndroid)
       return "aarch64-linux-android";
-    if (IsRunix)
-      return "aarch64-rovelstars-linux-runix";
+    if (IsRunixOS)
+      return "aarch64-rovelstars-runixos";
     if (hasEffectiveTriple() &&
         getEffectiveTriple().getEnvironment() == llvm::Triple::PAuthTest)
       return "aarch64-linux-pauthtest";
@@ -183,10 +183,8 @@ std::string Linux::getMultiarchTriple(const Driver &D,
 }
 
 static StringRef getOSLibDir(const llvm::Triple &Triple, const ArgList &Args) {
-  if(Triple.isRovelStars()){
-    //TODO: Use CMAKE_INSTALL_LIBDIR variable from CMake if possible
+  if (Triple.isOSRunixOS())
     return "Core/LibKit";
-  }
   if (Triple.isMIPS()) {
     // lib32 directory has a special meaning on MIPS targets.
     // It contains N32 ABI binaries. Use this folder if produce
@@ -342,6 +340,13 @@ Linux::Linux(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
   // possible permutations of these directories, and seeing which ones it added
   // to the link paths.
   path_list &Paths = getFilePaths();
+
+  // RunixOS uses its own filesystem hierarchy instead of FHS.
+  if (Triple.isOSRunixOS()) {
+    addPathIfExists(D, concat(SysRoot, "/Core/LibKit"), Paths);
+    addPathIfExists(D, concat(SysRoot, "/Construct/LibKit"), Paths);
+    return;
+  }
 
   const std::string OSLibDir = std::string(getOSLibDir(Triple, Args));
   const std::string MultiarchTriple = getMultiarchTriple(D, Triple, SysRoot);
@@ -742,9 +747,18 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
     break;
   }
   }
-  if (Triple.getVendor() == llvm::Triple::RovelStars) {
-    return "/Core/LibKit/" + Loader;
+  if (Triple.isOSRunixOS()) {
+    // RunixOS uses its own dynamic linker naming convention.
+    switch (Arch) {
+    case llvm::Triple::x86_64:
+      return "/Core/LibKit/ld-runixos-x86-64.rdl.2";
+    case llvm::Triple::aarch64:
+      return "/Core/LibKit/ld-runixos-aarch64.rdl.1";
+    default:
+      return "/Core/LibKit/" + Loader;
+    }
   }
+
   if (Distro == Distro::Exherbo &&
       (Triple.getVendor() == llvm::Triple::UnknownVendor ||
        Triple.getVendor() == llvm::Triple::PC))
@@ -752,7 +766,7 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
   return "/" + LibDir + "/" + Loader;
 }
 
-void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,                                                                     
+void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
                                       ArgStringList &CC1Args) const {
   const Driver &D = getDriver();
   std::string SysRoot = computeSysRoot();
@@ -779,12 +793,16 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     addSystemInclude(DriverArgs, CC1Args, *Path);
 
   // LOCAL_INCLUDE_DIR
-  // for RovelStars OS, we use /Core/LibKit as system include path
-  if (getTriple().getVendor() == llvm::Triple::RovelStars) {
-    addSystemInclude(DriverArgs, CC1Args, "/Core/APIHeader");
-  }
-  else{
-  addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/local/include"));
+  if (getTriple().isOSRunixOS()) {
+    // System headers (immutable, SIP-protected)
+    addSystemInclude(DriverArgs, CC1Args,
+                     concat(SysRoot, "/Core/APIHeader"));
+    // Third-party headers (user-installed, admin-writable)
+    addSystemInclude(DriverArgs, CC1Args,
+                     concat(SysRoot, "/Construct/APIHeader"));
+  } else {
+    addSystemInclude(DriverArgs, CC1Args,
+                     concat(SysRoot, "/usr/local/include"));
   }
   // TOOL_INCLUDE_DIR
   AddMultilibIncludeArgs(DriverArgs, CC1Args);

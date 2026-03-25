@@ -509,18 +509,17 @@ set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/b
 set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${LLVM_LIBDIR_SUFFIX})
 
 if(RovelStars)
-  message(STATUS "Using RovelStars custom output directory structure")
   set(_rovelstars_cache ${CMAKE_CURRENT_SOURCE_DIR}/../clang/cmake/caches/RovelStars.cmake)
   if(EXISTS "${_rovelstars_cache}")
-    message(STATUS "Loading vendor cache: ${_rovelstars_cache}")
     include("${_rovelstars_cache}")
   else()
     message(WARNING "RovelStars vendor cache not found at: ${_rovelstars_cache}")
- endif()
-  # RovelStars uses a custom output directory structure.
+  endif()
   set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${CMAKE_CFG_INTDIR})
   set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_CFG_INTDIR})
-  message(STATUS "RovelStars projects: ${LLVM_ENABLE_PROJECTS}")
+  # RunixOS uses .rdl for shared libraries and .ral for static archives
+  set(CMAKE_SHARED_LIBRARY_SUFFIX ".rdl")
+  set(CMAKE_STATIC_LIBRARY_SUFFIX ".ral")
 endif()
 
 if(WIN32 OR CYGWIN)
@@ -537,9 +536,6 @@ set(LLVM_MAIN_SRC_DIR     ${CMAKE_CURRENT_SOURCE_DIR}  ) # --src-root
 set(LLVM_MAIN_INCLUDE_DIR ${LLVM_MAIN_SRC_DIR}/include ) # --includedir
 set(LLVM_BINARY_DIR       ${CMAKE_CURRENT_BINARY_DIR}  ) # --prefix
 
-if(RovelStars)
-  message(STATUS "RovelStars detected, here's llvm flags: ${CMAKE_INSTALL_PREFIX} ${CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_BINDIR}")
-endif()
 
 # Note: LLVM_CMAKE_DIR does not include generated files
 set(LLVM_CMAKE_DIR ${LLVM_MAIN_SRC_DIR}/cmake/modules)

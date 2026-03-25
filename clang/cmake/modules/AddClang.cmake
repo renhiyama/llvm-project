@@ -131,14 +131,13 @@ macro(add_clang_library name)
 
       if (NOT LLVM_INSTALL_TOOLCHAIN_ONLY OR ARG_INSTALL_WITH_TOOLCHAIN)
         get_target_export_arg(${name} Clang export_to_clangtargets UMBRELLA clang-libraries)
-        # RovelStars support: install to additional RovelStars directory if enabled
         if(RovelStars)
           install(TARGETS ${lib}
             COMPONENT ${lib}
+            ${export_to_clangtargets}
             LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-            message(STATUS "RovelStars: [I] ${lib} to additional DIR: ${CMAKE_INSTALL_LIBDIR}, ${CMAKE_INSTALL_BINDIR}")
         else()
           install(TARGETS ${lib}
             COMPONENT ${lib}

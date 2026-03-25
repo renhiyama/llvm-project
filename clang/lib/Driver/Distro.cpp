@@ -207,7 +207,7 @@ static Distro::DistroType GetDistro(llvm::vfs::FileSystem &VFS,
                                     const llvm::Triple &TargetOrHost) {
   // If we don't target Linux, no need to check the distro. This saves a few
   // OS calls.
-  if (!TargetOrHost.isOSLinux())
+  if (!TargetOrHost.isOSLinux() && !TargetOrHost.isOSRunixOS())
     return Distro::UnknownDistro;
 
   // True if we're backed by a real file system.

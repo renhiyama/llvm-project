@@ -6983,6 +6983,7 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
       else
         TC = std::make_unique<toolchains::FreeBSD>(*this, Target, Args);
       break;
+    case llvm::Triple::RunixOS:
     case llvm::Triple::Linux:
     case llvm::Triple::ELFIAMCU:
       if (Target.getArch() == llvm::Triple::hexagon)
