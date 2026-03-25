@@ -1,0 +1,37 @@
+thread 'main' panicked at compiler/rustc_target/src/spec/mod.rs:2367:13:
+assertion `left == right` failed
+  left: Yes
+ right: No
+stack backtrace:
+   0:     0x7f8d579425a5 - std::backtrace::Backtrace::create::h6a8a0c5d2f7f9ea8
+   1:     0x7f8d579424f5 - std::backtrace::Backtrace::force_capture::h7d8267fbd628d4cd
+   2:     0x7f8d53d5f798 - std[964350b2783e405f]::panicking::update_hook::<alloc[eabebbc6c73aef0c]::boxed::Box<rustc_driver_impl[550fe00c364faade]::install_ice_hook::{closure#1}>>::{closure#0}
+   3:     0x7f8d5794359f - std::panicking::panic_with_hook::hd2b063a6090d23a4
+   4:     0x7f8d5794334a - std::panicking::panic_handler::{{closure}}::he666d95f139a333e
+   5:     0x7f8d5793aca9 - std::sys::backtrace::__rust_end_short_backtrace::h631ad224854ebee5
+   6:     0x7f8d57916c2d - __rustc[1d67440d6e82e4f]::rust_begin_unwind
+   7:     0x7f8d579b57e0 - core::panicking::panic_fmt::h420ddb7fd73daf53
+   8:     0x7f8d579b5593 - core::panicking::assert_failed_inner::h448e1d534f4c3d4b
+   9:     0x7f8d575436aa - core[dc8158927f5e781c]::panicking::assert_failed::<rustc_target[539a3f9143faf038]::spec::Lld, rustc_target[539a3f9143faf038]::spec::Lld>
+  10:     0x7f8d57456d3b - rustc_target[539a3f9143faf038]::spec::add_link_args
+  11:     0x7f8d5750a2db - rustc_target[539a3f9143faf038]::spec::base::rovelstars::opts
+  12:     0x7f8d5752350f - rustc_target[539a3f9143faf038]::spec::targets::x86_64_rovelstars_runixos::target
+  13:     0x7f8d574567f4 - rustc_target[539a3f9143faf038]::spec::load_builtin
+  14:     0x7f8d5745035a - <rustc_target[539a3f9143faf038]::spec::Target>::search
+  15:     0x7f8d5728baf0 - rustc_session[9b95622a47890486]::config::build_target_config
+  16:     0x7f8d53d495bf - rustc_interface[ace9247989b20342]::interface::run_compiler::<(), rustc_driver_impl[550fe00c364faade]::run_compiler::{closure#0}>
+  17:     0x7f8d53d24aaf - rustc_driver_impl[550fe00c364faade]::run_compiler
+  18:     0x7f8d53d2d5a0 - rustc_driver_impl[550fe00c364faade]::main
+  19:     0x55767b88d8b7 - rustc_main[b4c1ffc826b58773]::main
+  20:     0x55767b88d883 - std[964350b2783e405f]::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  21:     0x55767b88d899 - std[964350b2783e405f]::rt::lang_start::<()>::{closure#0}
+  22:     0x7f8d57929860 - std::rt::lang_start_internal::h06ad7395f4fda8d7
+  23:     0x55767b88d8e8 - main
+  24:     0x7f8d52027c0e - <unknown>
+  25:     0x7f8d52027d4b - __libc_start_main
+  26:     0x55767b88d785 - _start
+  27:                0x0 - <unknown>
+
+
+rustc version: 1.93.0-dev
+platform: x86_64-unknown-linux-gnu
