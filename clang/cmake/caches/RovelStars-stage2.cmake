@@ -28,11 +28,29 @@
 #     -DCMAKE_C_COMPILER=/path/to/build/stage1/bin/clang \
 #     -DCMAKE_CXX_COMPILER=/path/to/build/stage1/bin/clang++ \
 #     -DLLVM_USE_LINKER=/path/to/build/stage1/bin/ld.lld \
-#     -DCMAKE_SYSROOT=/path/to/runixos-sysroot \
 #     -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
 #     -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
 #     -DCMAKE_INSTALL_PREFIX=/path/to/install \
 #     llvm
+#
+# !! IMPORTANT: Do NOT pass -DCMAKE_SYSROOT=... at the top level. !!
+#
+#   Passing CMAKE_SYSROOT at the top level forces ALL CMake compiler-
+#   capability tests (CheckAtomic, CheckCompilerVersion, etc.) to run
+#   against the RunixOS sysroot, where libstdc++, libatomic, and other
+#   host-assumed libraries do not exist. This causes configure to fail
+#   before LLVM's own cmake logic even runs.
+#
+#   Instead, the sysroot is forwarded *only* to the runtimes and builtins
+#   ExternalProject sub-builds via the per-target variables below:
+#     -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=...
+#     -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=...
+#
+#   The top-level LLVM build (clang, lld, llvm-lib, etc.) is compiled by
+#   the stage1 host clang targeting the host triple — no sysroot needed.
+#   Only the runtime libraries (libc++, libunwind, compiler-rt, openmp)
+#   and builtins are cross-compiled for x86_64-rovelstars-runixos with
+#   the RunixOS sysroot.
 #
 # Outputs
 # -------

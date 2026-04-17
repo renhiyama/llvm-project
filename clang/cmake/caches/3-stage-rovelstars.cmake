@@ -19,7 +19,6 @@
 #   cmake -G Ninja \
 #     -C clang/cmake/caches/3-stage-rovelstars.cmake \
 #     -DCMAKE_INSTALL_PREFIX=/path/to/install \
-#     -DCMAKE_SYSROOT=/path/to/runixos-sysroot \
 #     -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
 #     -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
 #     -B build/stage1 \
@@ -34,9 +33,15 @@
 #
 # Notes
 # -----
-#   - CMAKE_SYSROOT at the top level is NOT automatically forwarded into the
-#     runtimes/builtins ExternalProject sub-builds.  Pass the sysroot
-#     explicitly via the RUNTIMES_* and BUILTINS_* -D arguments shown above.
+#   - Do NOT pass -DCMAKE_SYSROOT= at the top level.  Pass the RunixOS sysroot
+#     only via the per-target RUNTIMES_* and BUILTINS_* variables shown above.
+#     Passing CMAKE_SYSROOT at the top level causes CMake's own compiler-
+#     capability tests (CheckAtomic, CheckCompilerVersion, libstdc++ version
+#     check, etc.) to run against the RunixOS sysroot, where libstdc++ and
+#     libatomic are absent.  This fails configure before LLVM's cmake logic
+#     even runs.  The correct model is: the top-level LLVM build compiles
+#     with the host system; only the runtimes/builtins ExternalProject
+#     sub-builds receive the sysroot and target RunixOS.
 #   - LLVM_USE_LINKER is set to /usr/bin/ld.lld for stage1 (system lld).
 #     Stage2 overrides it to the stage1 ld.lld via RovelStars-stage2.cmake.
 #   - Do NOT set BOOTSTRAP_LLVM_ENABLE_LLD here; stage1 clang uses an
