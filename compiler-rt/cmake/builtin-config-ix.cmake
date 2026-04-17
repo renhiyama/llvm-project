@@ -290,7 +290,7 @@ else()
   endforeach()
 endif()
 
-if(OS_NAME MATCHES "Linux|SerenityOS" AND NOT LLVM_USE_SANITIZER AND NOT
+if(OS_NAME MATCHES "Linux|SerenityOS|RunixOS" AND NOT LLVM_USE_SANITIZER AND NOT
    COMPILER_RT_GPU_BUILD)
   set(COMPILER_RT_HAS_CRT TRUE)
 else()

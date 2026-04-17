@@ -218,7 +218,7 @@ static Distro::DistroType GetDistro(llvm::vfs::FileSystem &VFS,
   // is cross-compiling from BSD or Windows to Linux, and it would be
   // meaningless to try to figure out the "distro" of the non-Linux host.
   llvm::Triple HostTriple(llvm::sys::getProcessTriple());
-  if (!HostTriple.isOSLinux() && onRealFS)
+  if (!HostTriple.isOSLinux() && !HostTriple.isOSRunixOS() && onRealFS)
     return Distro::UnknownDistro;
 
   if (onRealFS) {

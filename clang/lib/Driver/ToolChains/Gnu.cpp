@@ -2518,6 +2518,10 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
         "x86_64-rovelstars-runixos"};
     LibDirs.append(begin(RunixOSLibDirs), end(RunixOSLibDirs));
     BiarchLibDirs.append(begin(RunixOSLibDirs), end(RunixOSLibDirs));
+    // RunixOS intentionally has no biarch/multilib support. It targets only
+    // 64-bit architectures (x86_64 and aarch64) and does not ship 32-bit
+    // or cross-architecture runtime libraries. No BiarchTripleAliases are
+    // populated here by design.
     switch (TargetTriple.getArch()) {
     case llvm::Triple::aarch64:
       TripleAliases.append(begin(Aarch64RunixOSTriples),

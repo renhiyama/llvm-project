@@ -793,7 +793,7 @@ public:
   /// Tests whether the OS uses glibc.
   bool isOSGlibc() const {
     return (getOS() == Triple::Linux || getOS() == Triple::KFreeBSD ||
-            getOS() == Triple::Hurd || getOS() == Triple::RunixOS) &&
+            getOS() == Triple::Hurd) &&
            !isAndroid() && !isMusl() && getEnvironment() != Triple::PAuthTest;
   }
 
