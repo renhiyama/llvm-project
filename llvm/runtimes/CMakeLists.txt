@@ -3,6 +3,28 @@
 # similar although simpler functionality. We should figure out how to merge
 # the two files.
 
+# RunixOS Stage-1 bootstrap workaround:
+# When the default target triple is a RunixOS triple (e.g. x86_64-rovelstars-runixos)
+# but we are building on a Linux host without a RunixOS sysroot, the runtimes
+# ExternalProject sub-build receives -DCMAKE_C_COMPILER_TARGET=<runixos-triple>
+# and the freshly-built stage1 clang tries to link test programs against RunixOS
+# CRTs (*.ral, /Core/LibKit) that do not exist on the build host. Every CMake
+# linker-capability test then fails and the runtimes configure step aborts.
+#
+# Fix: when LLVM_TARGET_TRIPLE is a RunixOS triple AND no CMAKE_SYSROOT is
+# provided (i.e. we are in a stage-1 host build, not a cross-compile), force
+# the compiler target back to the host triple so the linker tests succeed.
+# The compiler still knows about RunixOS via LLVM_DEFAULT_TARGET_TRIPLE; only
+# the runtimes sub-build target is changed to allow the host CRTs to be used.
+if(HAVE_LLVM_LIT)
+  # Only apply inside the bootstrapping runtimes build (not standalone).
+  if(LLVM_TARGET_TRIPLE MATCHES "-rovelstars-runixos$" AND NOT CMAKE_SYSROOT)
+    message(STATUS "RunixOS Stage-1: overriding runtimes compiler target to host triple '${LLVM_HOST_TRIPLE}' (no sysroot available)")
+    set(LLVM_TARGET_TRIPLE "${LLVM_HOST_TRIPLE}" CACHE STRING
+      "Runtimes compiler target overridden to host triple for RunixOS Stage-1 bootstrap" FORCE)
+  endif()
+endif()
+
 set(COMMON_CMAKE_ARGS "-DHAVE_LLVM_LIT=ON;-DCLANG_RESOURCE_DIR=${CLANG_RESOURCE_DIR}")
 foreach(proj ${LLVM_ENABLE_RUNTIMES})
   string(TOUPPER "${proj}" canon_name)
