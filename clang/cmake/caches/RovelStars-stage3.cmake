@@ -63,15 +63,24 @@
 # unset (host default) for Stage 1 safety. We override it explicitly below.
 include(${CMAKE_CURRENT_LIST_DIR}/RovelStars.cmake)
 
-# ── Use libc++ for Stage 3 ────────────────────────────────────────────────────
-# LLVM_ENABLE_LIBCXX=ON skips the libstdc++ version check in
-# CheckCompilerVersion.cmake. When building Stage 3 with the Stage 1 or Stage 2
-# clang (which sets CMAKE_SHARED_LIBRARY_SUFFIX=.rdl via the if(RovelStars) block
-# in llvm/CMakeLists.txt), cmake's check_cxx_source_compiles link step for the
-# libstdc++ version test may fail because cmake looks for libstdc++.rdl instead
-# of libstdc++.so. Setting LLVM_ENABLE_LIBCXX=ON bypasses the check entirely,
-# which is correct: RunixOS uses libc++, not libstdc++.
-set(LLVM_ENABLE_LIBCXX ON CACHE BOOL "" FORCE)
+# ── Bypass libstdc++ version check ───────────────────────────────────────────
+# CheckCompilerVersion.cmake runs check_cxx_source_compiles (compile+link) to
+# verify libstdc++ is at least version 7.4.  The link step fails when
+# CMAKE_SHARED_LIBRARY_SUFFIX=.rdl (set by llvm/CMakeLists.txt when RovelStars=ON)
+# because cmake resolves -lstdc++ to libstdc++.rdl which doesn't exist on the
+# Linux build host.
+#
+# Pre-asserting LLVM_LIBSTDCXX_MIN=1 makes CheckCompilerVersion.cmake skip the
+# failing compile/link test (the if(NOT LLVM_LIBSTDCXX_MIN) FATAL_ERROR is never
+# reached).  This is correct: the host system has a modern enough libstdc++,
+# and RunixOS itself uses libc++ rather than libstdc++ anyway.
+#
+# We intentionally do NOT set LLVM_ENABLE_LIBCXX=ON here: that would cause all
+# stage3 host-executed build tools (tblgen, clang-tidy-confusable-chars-gen, etc.)
+# to link against libc++.so.1, which is not installed on the Linux build host,
+# causing "cannot open shared object file" errors at build time.
+set(LLVM_LIBSTDCXX_MIN        1 CACHE INTERNAL "pre-asserted: bypass version check" FORCE)
+set(LLVM_LIBSTDCXX_SOFT_ERROR 1 CACHE INTERNAL "pre-asserted: bypass version check" FORCE)
 
 # ── RovelStars identity flag ──────────────────────────────────────────────────
 # Must be set explicitly when cross-compiling from a non-RunixOS host.
