@@ -63,6 +63,16 @@
 # unset (host default) for Stage 1 safety. We override it explicitly below.
 include(${CMAKE_CURRENT_LIST_DIR}/RovelStars.cmake)
 
+# ── Use libc++ for Stage 3 ────────────────────────────────────────────────────
+# LLVM_ENABLE_LIBCXX=ON skips the libstdc++ version check in
+# CheckCompilerVersion.cmake. When building Stage 3 with the Stage 1 or Stage 2
+# clang (which sets CMAKE_SHARED_LIBRARY_SUFFIX=.rdl via the if(RovelStars) block
+# in llvm/CMakeLists.txt), cmake's check_cxx_source_compiles link step for the
+# libstdc++ version test may fail because cmake looks for libstdc++.rdl instead
+# of libstdc++.so. Setting LLVM_ENABLE_LIBCXX=ON bypasses the check entirely,
+# which is correct: RunixOS uses libc++, not libstdc++.
+set(LLVM_ENABLE_LIBCXX ON CACHE BOOL "" FORCE)
+
 # ── RovelStars identity flag ──────────────────────────────────────────────────
 # Must be set explicitly when cross-compiling from a non-RunixOS host.
 set(RovelStars ON CACHE BOOL "" FORCE)
