@@ -143,12 +143,24 @@ set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
 # linker are both self-hosted RunixOS binaries.
 # set(LLVM_ENABLE_LTO "Thin" CACHE STRING "" FORCE)
 
-# ── PGO instrumentation ───────────────────────────────────────────────────────
-# GEN mode instruments the stage 2 binaries. Run the desired workloads
-# (e.g. compiling a RunixOS userspace tree) after install to collect
-# *.profraw files, then merge them with llvm-profdata and pass the result
-# to Stage 3 via -DLLVM_PROFDATA_FILE=<merged.profdata>.
-set(LLVM_ENABLE_PGO "GEN" CACHE STRING "" FORCE)
+# ── PGO instrumentation (Stage 2 → Stage 3 profile collection) ───────────────
+# LLVM_BUILD_INSTRUMENTED=Frontend causes every compiled binary to be built
+# with -fprofile-instr-generate, producing *.profraw files when run.
+# Collect profiles by running a representative workload (e.g. compiling LLVM
+# itself or a RunixOS userspace tree), then merge and pass to Stage 3:
+#
+#   llvm-profdata merge -output=merged.profdata build/stage2/profiles/*.profraw
+#   cmake ... -DLLVM_PROFDATA_FILE=<path>/merged.profdata   # for Stage 3
+#
+# Valid LLVM_BUILD_INSTRUMENTED values: OFF, IR, Frontend, CSIR, CSSPGO
+# Frontend PGO instruments via clang's front-end pass and is the recommended
+# mode for bootstrapping a compiler toolchain.
+#
+# NOTE: LLVM_ENABLE_PGO is NOT a real LLVM cmake variable; the correct
+# variable is LLVM_BUILD_INSTRUMENTED.  LLVM_PROFILE_DATA_DIR sets the
+# directory where *.profraw files are written.
+set(LLVM_BUILD_INSTRUMENTED "Frontend" CACHE STRING "" FORCE)
+set(LLVM_PROFILE_DATA_DIR   "${CMAKE_BINARY_DIR}/profiles" CACHE STRING "" FORCE)
 
 # ── compiler-rt / runtime library settings ────────────────────────────────────
 # These are passed through to the runtimes ExternalProject sub-build via the
