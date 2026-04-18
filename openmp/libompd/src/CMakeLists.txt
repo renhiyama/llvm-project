@@ -13,6 +13,18 @@ cmake_minimum_required(VERSION 3.20.0)
 
 add_library (ompd SHARED TargetValue.cpp omp-debug.cpp omp-state.cpp omp-icv.cpp)
 
+# RunixOS and other platforms without libgcc_s / libstdc++ need explicit
+# C++ ABI and unwind library links because CMAKE_CXX_IMPLICIT_LINK_LIBRARIES
+# is empty when built with -nostdlib++ (which HandleLLVMOptions.cmake adds
+# via -Wl,-z,defs). Use the in-tree cxxabi_shared target if available,
+# otherwise fall back to system library names via -lc++abi / -lunwind.
+if(TARGET cxxabi_shared)
+  target_link_libraries(ompd PRIVATE cxxabi_shared)
+elseif(NOT COMPILER_RT_HAS_GCC_S_LIB)
+  # No libgcc_s on this platform (e.g. RunixOS) — link against libc++abi.
+  target_link_libraries(ompd PRIVATE -lc++abi -lunwind)
+endif()
+
 # libompd must not link against libomp, there is no code dependency.
 add_dependencies(ompd omp) # ensure generated import library is created first
 
@@ -22,21 +34,21 @@ set(LIBOMPD_LD_STD_FLAGS FALSE CACHE BOOL
   "Use -stdlibc++ instead of -libc++ library for C++ ")
 
 if(LIBOMPD_LD_STD_FLAGS)
-#  Find and replace/add libstdc++ to compile flags     
-   STRING( FIND "${CMAKE_CXX_FLAGS}" "-stdlib=libc++" OUT )
-   if("${OUT}" STREQUAL "-1" )   
-      set (CMAKE_CXX_FLAGS "-stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
-   else()
-      STRING( REPLACE "-stdlib=libc++" "-stdlib=libstdc++" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
-   endif()         
+  #  Find and replace/add libstdc++ to compile flags
+  STRING( FIND "${CMAKE_CXX_FLAGS}" "-stdlib=libc++" OUT )
+  if("${OUT}" STREQUAL "-1" )
+    set (CMAKE_CXX_FLAGS "-stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
+  else()
+    STRING( REPLACE "-stdlib=libc++" "-stdlib=libstdc++" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+  endif()
 
-#  Find and replace/add libstdc++ to loader flags
-   STRING( FIND "${CMAKE_SHARED_LINKER_FLAGS}" "-stdlib=libc++" OUT )
-   if("${OUT}" STREQUAL "-1" )   
-      set (CMAKE_SHARED_LINKER_FLAGS "-stdlib=libstdc++ ${CMAKE_SHARED_LINKER_FLAGS}")         
-   else()
-      STRING( REPLACE "-stdlib=libc++" "-stdlib=libstdc++" CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} )
-   endif()
+  #  Find and replace/add libstdc++ to loader flags
+  STRING( FIND "${CMAKE_SHARED_LINKER_FLAGS}" "-stdlib=libc++" OUT )
+  if("${OUT}" STREQUAL "-1" )
+    set (CMAKE_SHARED_LINKER_FLAGS "-stdlib=libstdc++ ${CMAKE_SHARED_LINKER_FLAGS}")
+  else()
+    STRING( REPLACE "-stdlib=libc++" "-stdlib=libstdc++" CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} )
+  endif()
 endif()
 
 include_directories (

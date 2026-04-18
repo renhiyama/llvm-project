@@ -100,6 +100,10 @@ set(LIBCXX_USE_COMPILER_RT      ON  CACHE BOOL "" FORCE)
 # which does not exist on RunixOS. Without this Scudo's GWP-ASan component
 # aborts configure with "No suitable unwinder library".
 set(COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+# On RunixOS there is no libgcc_s fallback for __float128 soft-float operations.
+# Explicitly link against the in-tree libclang_rt.builtins so that sanitizer
+# shared libs (nsan, etc.) that use __float128 get the soft-float libcalls they need.
+set(COMPILER_RT_USE_BUILTINS_LIBRARY ON CACHE BOOL "" FORCE)
 
 # Pre-set the compiler flag capability variables that libunwind's CMakeLists
 # checks before allowing the shared library to be built. When CMAKE_CXX_COMPILER_WORKS

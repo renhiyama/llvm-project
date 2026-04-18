@@ -162,6 +162,8 @@ set(COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
 # only forwards variables that are in CMake's variable list at generation time;
 # the explicit per-target form is always forwarded).
 set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_USE_BUILTINS_LIBRARY ON CACHE BOOL "" FORCE)
+set(COMPILER_RT_USE_BUILTINS_LIBRARY ON CACHE BOOL "" FORCE)
 set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
 # libcxx/libcxxabi/libunwind: use compiler-rt and LLVM unwinder on RunixOS.
 # Also forwarded per-target to ensure they reach the runtimes sub-cmake.

@@ -5,7 +5,7 @@
 # // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 # //
 # //===----------------------------------------------------------------------===//
-  
+
 set(LIBOMP_ARCHER_SUPPORT TRUE CACHE BOOL "Build libomp with archer support")
 
 if(LIBOMP_OMPT_SUPPORT AND LIBOMP_ARCHER_SUPPORT)
@@ -26,8 +26,12 @@ if(LIBOMP_OMPT_SUPPORT AND LIBOMP_ARCHER_SUPPORT)
   endif()
 
   if(TARGET cxxabi_shared)
-    add_dependencies(archer cxxabi_shared)
-    add_dependencies(archer_static cxxabi_shared)
+    target_link_libraries(archer PRIVATE cxxabi_shared)
+    target_link_libraries(archer_static PRIVATE cxxabi_shared)
+  elseif(NOT COMPILER_RT_HAS_GCC_S_LIB)
+    # No libgcc_s on this platform (e.g. RunixOS) — link against libc++abi.
+    target_link_libraries(archer PRIVATE -lc++abi -lunwind)
+    target_link_libraries(archer_static PRIVATE -lc++abi -lunwind)
   endif()
 
   install(TARGETS archer archer_static
