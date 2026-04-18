@@ -203,9 +203,9 @@ set(COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
 # Without this SANITIZER_CXX_ABI defaults to "default" which resolves to libstdc++
 # on Linux-like systems — but RunixOS has no libstdc++. Setting INTREE tells
 # compiler-rt to link against the libc++abi being built in the same runtimes batch.
-set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI         "libc++abi" CACHE STRING "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI         "libcxxabi" CACHE STRING "" FORCE)
 set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI_INTREE  ON          CACHE BOOL   "" FORCE)
-set(SANITIZER_CXX_ABI        "libc++abi" CACHE STRING "" FORCE)
+set(SANITIZER_CXX_ABI        "libcxxabi" CACHE STRING "" FORCE)
 set(SANITIZER_CXX_ABI_INTREE ON          CACHE BOOL   "" FORCE)
 
 # ── RunixOS FHS install paths (stage 2 override / explicit restatement) ───────

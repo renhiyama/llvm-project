@@ -89,7 +89,7 @@ set(LIBUNWIND_USE_COMPILER_RT ON  CACHE BOOL "" FORCE)
 set(COMPILER_RT_CXX_LIBRARY   "libcxx" CACHE STRING "" FORCE)
 # Sanitizers use libc++abi for C++ ABI. INTREE means link against the libc++abi
 # being built in this same runtimes batch (uses the cxxabi_shared CMake target).
-set(SANITIZER_CXX_ABI          "libc++abi" CACHE STRING "" FORCE)
+set(SANITIZER_CXX_ABI          "libcxxabi" CACHE STRING "" FORCE)
 set(SANITIZER_CXX_ABI_INTREE   ON          CACHE BOOL   "" FORCE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funwind-tables" CACHE STRING "" FORCE)
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -funwind-tables" CACHE STRING "" FORCE)

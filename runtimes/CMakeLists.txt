@@ -75,13 +75,28 @@ if (NOT LLVM_BINARY_DIR)
   set(LLVM_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 if (NOT LLVM_FOUND)
-  set(LLVM_TOOLS_BINARY_DIR ${LLVM_BINARY_DIR}/bin)
-  set(LLVM_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
-  set(LLVM_LIBRARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib${LLVM_LIBDIR_SUFFIX})
-  if(RovelStars)
+  # Only set these if not already provided by the caller via -D.
+  # When cross-compiling for RunixOS (Stage 2), the caller passes absolute
+  # paths for LLVM_LIBRARY_DIR and LLVM_TOOLS_BINARY_DIR pointing into the
+  # top-level build dir. Overwriting them here (with a path relative to the
+  # runtimes binary dir) breaks all compiler-rt output-directory calculations.
+  if(NOT LLVM_TOOLS_BINARY_DIR)
+    set(LLVM_TOOLS_BINARY_DIR ${LLVM_BINARY_DIR}/bin)
+  endif()
+  if(NOT LLVM_INCLUDE_DIR)
+    set(LLVM_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
+  endif()
+  if(NOT LLVM_LIBRARY_DIR)
+    set(LLVM_LIBRARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib${LLVM_LIBDIR_SUFFIX})
+    if(RovelStars)
+      set(LLVM_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
+    endif()
+  endif()
+  if(NOT LLVM_TOOLS_BINARY_DIR AND RovelStars)
     set(LLVM_TOOLS_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
+  endif()
+  if(NOT LLVM_INCLUDE_DIR AND RovelStars)
     set(LLVM_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
-    set(LLVM_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
   endif()
 endif()
 
