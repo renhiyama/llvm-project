@@ -81,7 +81,7 @@ if (LLVM_TREE_AVAILABLE)
   set(COMPILER_RT_TEST_CXX_COMPILER
     ${LLVM_TOOLS_BINARY_DIR}/clang++${_host_executable_suffix})
 else()
-    # Take output dir and install path from the user.
+  # Take output dir and install path from the user.
   set(COMPILER_RT_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH
     "Path where built compiler-rt libraries should be stored.")
   set(COMPILER_RT_EXEC_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE PATH
@@ -123,9 +123,15 @@ if(NOT DEFINED COMPILER_RT_OS_DIR)
 endif()
 if(LLVM_ENABLE_PER_TARGET_RUNTIME_DIR AND NOT APPLE)
   if(RovelStars)
+    # On RunixOS, COMPILER_RT_OUTPUT_DIR is already the clang resource dir
+    # (e.g. build/stage2/Core/LibKit/clang/23). The per-target subdirectory
+    # (e.g. x86_64-rovelstars-runixos) is appended by get_compiler_rt_output_dir.
+    # We must NOT append CMAKE_INSTALL_LIBDIR (Core/LibKit) here — that would
+    # double up the path to build/stage2/Core/LibKit/clang/23/Core/LibKit/...
+    # Use the same layout as the non-RovelStars branch: just a "lib" subdirectory.
     set(COMPILER_RT_OUTPUT_LIBRARY_DIR
-      ${COMPILER_RT_OUTPUT_DIR}/${CMAKE_INSTALL_LIBDIR})
-    extend_path(default_install_path "${COMPILER_RT_INSTALL_PATH}" "${CMAKE_INSTALL_LIBDIR}")
+      ${COMPILER_RT_OUTPUT_DIR}/lib)
+    extend_path(default_install_path "${COMPILER_RT_INSTALL_PATH}" lib)
   else()
     set(COMPILER_RT_OUTPUT_LIBRARY_DIR
       ${COMPILER_RT_OUTPUT_DIR}/lib)

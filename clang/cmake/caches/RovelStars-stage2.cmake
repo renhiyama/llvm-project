@@ -73,6 +73,20 @@
 # unset (host default) for Stage 1 safety. We override it explicitly below.
 include(${CMAKE_CURRENT_LIST_DIR}/RovelStars.cmake)
 
+# ── RovelStars identity flag ──────────────────────────────────────────────────
+# Must be set explicitly for cross-compilation FROM a Linux host.
+# When building natively ON RunixOS, cmake/Modules/Platform/RovelStars-Initialize.cmake
+# sets this automatically. When cross-compiling from Linux (as in Stage 2), the
+# Linux platform module runs instead and the flag is never set — so clang/CMakeLists.txt
+# and llvm/CMakeLists.txt never enter their RunixOS-specific branches.
+# Consequences of not setting it:
+#   - CLANG_INSTALL_LIBDIR_BASENAME defaults to "lib" instead of "LibKit",
+#     causing clang's resource dir (where omp.h, omp-tools.h etc. live) to be
+#     build/stage2/lib/clang/23 rather than build/stage2/Core/LibKit/clang/23.
+#     OpenMP and other runtimes then fail to find their generated headers.
+#   - Output and library directories don't follow the RunixOS FHS.
+set(RovelStars ON CACHE BOOL "" FORCE)
+
 # ── Compilers (Stage 1 binaries) ──────────────────────────────────────────────
 # The caller MUST pass these on the cmake command line, for example:
 #
@@ -113,9 +127,21 @@ set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
 #   "x86_64-rovelstars-runixos;aarch64-rovelstars-runixos" CACHE STRING "" FORCE)
 
 # ── LTO ───────────────────────────────────────────────────────────────────────
-# ThinLTO for stage 2: faster than FullLTO, still yields a meaningfully
-# optimised toolchain to run PGO workloads through.
-set(LLVM_ENABLE_LTO "Thin" CACHE STRING "" FORCE)
+# LTO is disabled for stage 2 bootstrap builds.
+#
+# Rationale: LLVM_ENABLE_LTO causes ALL objects (including cmake configure-time
+# try_compile tests) to be emitted as ThinLTO bitcode. The cmake tests are linked
+# by LLVM_USE_LINKER (the stage1 system ld.lld v22), but the stage2 clang (v23)
+# produces ThinLTO summary version 13 which the old system lld v22 cannot read:
+#   ld.lld: error: Invalid summary version 13. Version should be in the range [1-12]
+# This causes every check_c_source_compiles() test in polly/ISL and elsewhere to
+# fail at configure time, aborting the build.
+#
+# To re-enable LTO for a specific build, pass -DLLVM_ENABLE_LTO=Thin on the cmake
+# command line AFTER a stage2 ld.lld is available and set as LLVM_USE_LINKER.
+# For a proper 3-stage bootstrap, LTO belongs in stage 3 where the compiler and
+# linker are both self-hosted RunixOS binaries.
+# set(LLVM_ENABLE_LTO "Thin" CACHE STRING "" FORCE)
 
 # ── PGO instrumentation ───────────────────────────────────────────────────────
 # GEN mode instruments the stage 2 binaries. Run the desired workloads
@@ -143,12 +169,44 @@ set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXXABI_USE_LLVM_UNWINDER ON CACHE BOOL
 set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXXABI_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
 set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXX_USE_COMPILER_RT      ON CACHE BOOL "" FORCE)
 set(RUNTIMES_x86_64-rovelstars-runixos_LIBUNWIND_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
+# Pass the top-level LLVM library and tools directories to the runtimes sub-build.
+#
+# Background: runtimes/CMakeLists.txt calls find_package(LLVM PATHS "${LLVM_BINARY_DIR}")
+# to discover LLVM_LIBRARY_DIR and LLVM_TOOLS_BINARY_DIR. On a standard Linux build the
+# cmake package files live in build/stage2/lib/cmake/llvm/, but on RunixOS they are
+# installed to build/stage2/Core/LibKit/cmake/llvm/. Because find_package uses the
+# standard lib/cmake search path it fails (LLVM_FOUND=OFF), and the fallback in
+# runtimes/CMakeLists.txt computes LLVM_LIBRARY_DIR as a path RELATIVE to the runtimes
+# binary dir. This causes all compiler-rt output-directory calculations inside the
+# runtimes cmake (which use LLVM_LIBRARY_DIR as an anchor) to be wrong — the builtins
+# sources file ends up at a relative unresolvable path inside the runtimes binary dir.
+#
+# Fixes:
+#   1. Pass CMAKE_PREFIX_PATH pointing to the RunixOS cmake package root so
+#      find_package(LLVM) succeeds and LLVM_FOUND=ON.
+#   2. Also pass LLVM_LIBRARY_DIR and LLVM_TOOLS_BINARY_DIR explicitly as absolute
+#      paths so the runtimes cmake can set LLVM_TREE_AVAILABLE=ON even if
+#      find_package somehow still fails.
+set(RUNTIMES_x86_64-rovelstars-runixos_CMAKE_PREFIX_PATH
+  "${CMAKE_BINARY_DIR}/Core/LibKit" CACHE PATH "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_LLVM_LIBRARY_DIR
+  "${CMAKE_BINARY_DIR}/Core/LibKit" CACHE PATH "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_LLVM_TOOLS_BINARY_DIR
+  "${CMAKE_BINARY_DIR}/Core/Bin" CACHE PATH "" FORCE)
 # compiler-rt needs to know to use libc++ (not libstdc++) for C++ ABI symbols
 # (typeinfo, dynamic_cast, etc.) on RunixOS. Without this, sanitizer shared libs
 # (ubsan_standalone, asan, etc.) fail to link with "undefined symbol: typeinfo for
 # std::type_info" because they default to libstdc++ which doesn't exist on RunixOS.
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_CXX_LIBRARY "libc++" CACHE STRING "" FORCE)
-set(COMPILER_RT_CXX_LIBRARY "libc++" CACHE STRING "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
+set(COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
+# Tell sanitizers to use libc++abi for C++ ABI support (typeinfo, dynamic_cast).
+# Without this SANITIZER_CXX_ABI defaults to "default" which resolves to libstdc++
+# on Linux-like systems — but RunixOS has no libstdc++. Setting INTREE tells
+# compiler-rt to link against the libc++abi being built in the same runtimes batch.
+set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI         "libc++abi" CACHE STRING "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI_INTREE  ON          CACHE BOOL   "" FORCE)
+set(SANITIZER_CXX_ABI        "libc++abi" CACHE STRING "" FORCE)
+set(SANITIZER_CXX_ABI_INTREE ON          CACHE BOOL   "" FORCE)
 
 # ── RunixOS FHS install paths (stage 2 override / explicit restatement) ───────
 # RovelStars.cmake already sets these; they are repeated here for clarity and

@@ -34,14 +34,30 @@ set(LLVM_ENABLE_RUNTIMES
 set(CLANG_VENDOR "RovelStars" CACHE STRING "" FORCE)
 set(PACKAGE_VENDOR "RovelStars" CACHE STRING "" FORCE)
 set(RunixOfficialBuild ON CACHE BOOL "" FORCE)
+# RovelStars is the cmake identity flag that enables RunixOS-specific code paths
+# throughout clang/CMakeLists.txt, llvm/CMakeLists.txt, bolt/CMakeLists.txt etc.
+# When building natively ON RunixOS the cmake Platform module sets this automatically.
+# When cross-compiling FROM a Linux host (as in Stage 1 and Stage 2 bootstrap builds)
+# the Linux platform module runs instead, so we must set the flag explicitly here.
+# Without it, CLANG_INSTALL_LIBDIR_BASENAME defaults to "lib" instead of "LibKit",
+# output directories don't follow the RunixOS FHS, and many if(RovelStars) guards
+# throughout the build system are never entered.
+set(RovelStars ON CACHE BOOL "" FORCE)
 # TODO: set(BUG_REPORT_URL "https://os.rovelstars.com/bugreport" CACHE STRING "" FORCE)
 
 # ── Build type ────────────────────────────────────────────────────────────────
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 
-# ── Compiler (use system clang for stage 1) ───────────────────────────────────
-set(CMAKE_C_COMPILER   "clang"   CACHE STRING "" FORCE)
-set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "" FORCE)
+# ── Compiler ──────────────────────────────────────────────────────────────────
+# CMAKE_C_COMPILER and CMAKE_CXX_COMPILER are intentionally NOT set here.
+# The caller must supply them on the cmake command line, e.g.:
+#   Stage 1:  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+#   Stage 2:  -DCMAKE_C_COMPILER=/path/to/stage1/bin/clang
+#             -DCMAKE_CXX_COMPILER=/path/to/stage1/bin/clang++
+# Setting them here with FORCE would override the command-line values because
+# llvm/CMakeLists.txt re-includes this file via include() (not -C cache),
+# causing the FORCE set() to win and breaking the stage2 compiler discovery.
+
 
 # ── Linker ────────────────────────────────────────────────────────────────────
 # Use LLVM_USE_LINKER with the absolute path to the system ld.lld.

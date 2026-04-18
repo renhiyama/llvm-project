@@ -86,7 +86,11 @@ set(LIBUNWIND_USE_COMPILER_RT ON  CACHE BOOL "" FORCE)
 # Without this, sanitizer shared libs (ubsan_standalone, asan, etc.) fail to link
 # with "undefined symbol: typeinfo for std::type_info" because compiler-rt defaults
 # to libstdc++ on Linux-like systems.
-set(COMPILER_RT_CXX_LIBRARY   "libc++" CACHE STRING "" FORCE)
+set(COMPILER_RT_CXX_LIBRARY   "libcxx" CACHE STRING "" FORCE)
+# Sanitizers use libc++abi for C++ ABI. INTREE means link against the libc++abi
+# being built in this same runtimes batch (uses the cxxabi_shared CMake target).
+set(SANITIZER_CXX_ABI          "libc++abi" CACHE STRING "" FORCE)
+set(SANITIZER_CXX_ABI_INTREE   ON          CACHE BOOL   "" FORCE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funwind-tables" CACHE STRING "" FORCE)
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -funwind-tables" CACHE STRING "" FORCE)
 set(LIBCXXABI_USE_LLVM_UNWINDER ON  CACHE BOOL "" FORCE)

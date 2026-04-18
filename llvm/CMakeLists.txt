@@ -131,7 +131,7 @@ endif()
 
 foreach(proj ${LLVM_ENABLE_PROJECTS})
   if (NOT proj STREQUAL "llvm" AND NOT "${proj}" IN_LIST LLVM_KNOWN_PROJECTS)
-     MESSAGE(FATAL_ERROR "${proj} isn't a known project: ${LLVM_KNOWN_PROJECTS}. Did you mean to enable it as a runtime in LLVM_ENABLE_RUNTIMES?")
+    MESSAGE(FATAL_ERROR "${proj} isn't a known project: ${LLVM_KNOWN_PROJECTS}. Did you mean to enable it as a runtime in LLVM_ENABLE_RUNTIMES?")
   endif()
 endforeach()
 
@@ -509,12 +509,15 @@ set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/b
 set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${LLVM_LIBDIR_SUFFIX})
 
 if(RovelStars)
-  set(_rovelstars_cache ${CMAKE_CURRENT_SOURCE_DIR}/../clang/cmake/caches/RovelStars.cmake)
-  if(EXISTS "${_rovelstars_cache}")
-    include("${_rovelstars_cache}")
-  else()
-    message(WARNING "RovelStars vendor cache not found at: ${_rovelstars_cache}")
-  endif()
+  # NOTE: Do NOT re-include RovelStars.cmake here via include().
+  # RovelStars.cmake is designed as an initial cache file loaded via -C on the
+  # cmake command line. Re-including it here (in the cmake configure phase, after
+  # the cache has already been loaded) causes every set(... CACHE ... FORCE) in
+  # that file to run again in full cmake scope, overriding caller-supplied -D
+  # values such as CMAKE_C_COMPILER, LLVM_BUILTIN_TARGETS, etc.
+  # All RovelStars settings are already applied from the initial -C cache load.
+  # This block only sets the output directory and library suffix overrides that
+  # must be derived from already-resolved cmake variables (CMAKE_INSTALL_*).
   set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${CMAKE_CFG_INTDIR})
   set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_CFG_INTDIR})
   # RunixOS uses .rdl for shared libraries and .ral for static archives
@@ -803,7 +806,7 @@ if (MSVC_IDE OR XCODE)
   set(LIT_ARGS_DEFAULT "${LIT_ARGS_DEFAULT} --no-progress-bar")
 endif()
 if(LLVM_INDIVIDUAL_TEST_COVERAGE)
-   set(LIT_ARGS_DEFAULT "${LIT_ARGS_DEFAULT} --per-test-coverage")
+  set(LIT_ARGS_DEFAULT "${LIT_ARGS_DEFAULT} --per-test-coverage")
 endif()
 set(LLVM_LIT_ARGS "${LIT_ARGS_DEFAULT}" CACHE STRING "Default options for lit")
 
@@ -1267,9 +1270,9 @@ endif()
 # Build with _XOPEN_SOURCE on AIX, as stray macros in _ALL_SOURCE mode tend to
 # break things. In this case we need to enable the large-file API as well.
 if (UNIX AND "${CMAKE_SYSTEM_NAME}" MATCHES "AIX")
-          add_compile_definitions(_XOPEN_SOURCE=700)
-          add_compile_definitions(_LARGE_FILE_API)
-          add_compile_options(-pthread)
+  add_compile_definitions(_XOPEN_SOURCE=700)
+  add_compile_definitions(_LARGE_FILE_API)
+  add_compile_options(-pthread)
 
   # Modules should be built with -shared -Wl,-G, so we can use runtime linking
   # with plugins.
@@ -1295,7 +1298,7 @@ endif()
 
 # Build with _FILE_OFFSET_BITS=64 on Solaris to match g++ >= 9.
 if (UNIX AND "${CMAKE_SYSTEM_NAME}" MATCHES "SunOS")
-          add_compile_definitions(_FILE_OFFSET_BITS=64)
+  add_compile_definitions(_FILE_OFFSET_BITS=64)
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -1308,8 +1311,8 @@ if(LLVM_USE_HOST_TOOLS)
   llvm_create_cross_target(LLVM NATIVE "" Release)
 endif(LLVM_USE_HOST_TOOLS)
 if(LLVM_TARGET_IS_CROSSCOMPILE_HOST)
-# Dummy use to avoid CMake Warning: Manually-specified variables were not used
-# (this is a variable that CrossCompile sets on recursive invocations)
+  # Dummy use to avoid CMake Warning: Manually-specified variables were not used
+  # (this is a variable that CrossCompile sets on recursive invocations)
 endif()
 
 # Special hack for z/OS for missing POSIX functions
@@ -1318,8 +1321,8 @@ if (CMAKE_SYSTEM_NAME MATCHES "OS390")
 endif()
 
 if( "${CMAKE_SYSTEM_NAME}" MATCHES SunOS )
-   # special hack for Solaris to handle crazy system sys/regset.h
-   include_directories("${LLVM_MAIN_INCLUDE_DIR}/llvm/Support/Solaris")
+  # special hack for Solaris to handle crazy system sys/regset.h
+  include_directories("${LLVM_MAIN_INCLUDE_DIR}/llvm/Support/Solaris")
 endif( "${CMAKE_SYSTEM_NAME}" MATCHES SunOS )
 
 # Make sure we don't get -rdynamic in every binary. For those that need it,
