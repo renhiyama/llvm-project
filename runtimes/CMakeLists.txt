@@ -299,16 +299,6 @@ function(build_gtest)
   endif()
 
   add_subdirectory("${LLVM_THIRD_PARTY_DIR}/unittest" "${CMAKE_BINARY_DIR}/third-party/runtimes_gtest")
-  # On ELF platforms that use -Wl,-z,defs (e.g. RunixOS via HandleLLVMOptions.cmake),
-  # non-PIC objects in a static archive cannot be linked into a shared library.
-  # Force PIC on the runtimes_gtest static library so it can be embedded in
-  # libomptest.so without triggering R_X86_64_PC32 relocation errors.
-  foreach(_rt_gtest_target runtimes_gtest runtimes_gtest_main)
-    if(TARGET ${_rt_gtest_target})
-      set_target_properties(${_rt_gtest_target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    endif()
-  endforeach()
-  unset(_rt_gtest_target)
 endfunction()
 
 foreach(entry ${runtimes})

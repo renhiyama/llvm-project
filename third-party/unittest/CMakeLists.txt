@@ -19,6 +19,11 @@ if(LLVM_RUNTIMES_BUILD)
   # support) of the host build: It may be a different architecture and/or
   # using a different C++ ABI such as libcxx/libstdc++.
   set(GTEST_LLVM_COMPONENTS "")
+  # On ELF platforms that enforce -Wl,-z,defs for shared libs (e.g. RunixOS
+  # via HandleLLVMOptions.cmake), non-PIC objects cannot be linked into a
+  # shared library. Force -fPIC so runtimes_gtest can be embedded in
+  # libomptest.so without R_X86_64_PC32 relocation errors.
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
   # We cannot use llvm_gtest for the target; it would clash with
   # find_package(LLVM) with LLVM_EXPORT_GTEST=ON. Instead, we define an alias
@@ -71,6 +76,8 @@ set(BUILDTREE_ONLY BUILDTREE_ONLY)
 if (LLVM_INSTALL_GTEST)
   set(BUILDTREE_ONLY "")
 endif ()
+
+
 
 add_llvm_library("${gtest_name}"
   googletest/src/gtest-all.cc
