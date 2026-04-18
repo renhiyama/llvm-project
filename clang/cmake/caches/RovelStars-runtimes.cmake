@@ -118,3 +118,18 @@ set(LIBUNWIND_ENABLE_THREADS          ON   CACHE BOOL "" FORCE)
 # ── RovelStars flag ───────────────────────────────────────────────────────────
 # Propagate the RovelStars CMake flag into sub-projects that check for it.
 set(RovelStars ON CACHE BOOL "" FORCE)
+
+# ── OpenMP test infrastructure ────────────────────────────────────────────────
+# libomptest.so (ompTest) links GoogleTest objects not compiled with -fPIC,
+# causing R_X86_64_PC32 relocation errors when building as a shared lib on
+# RunixOS. Disable the ompTest unit test library; it is only needed for running
+# OpenMP's own tests, not for a functional toolchain.
+set(LIBOMPTEST_BUILD_STANDALONE   OFF CACHE BOOL "" FORCE)
+set(LIBOMPTEST_BUILD_UNITTESTS    OFF CACHE BOOL "" FORCE)
+set(LIBOMPTEST_INSTALL_COMPONENTS OFF CACHE BOOL "" FORCE)
+# libomptest.so is added when LIBOMP_OMPT_SUPPORT AND LLVM_INCLUDE_TESTS.
+# It links GoogleTest objects not compiled with -fPIC, causing
+# R_X86_64_PC32 relocation errors on RunixOS. Disable its build by
+# disabling OpenMP tests; OMPT support in libomp.so itself is unaffected
+# because OMPT is compiled into libomp regardless of this variable.
+set(OPENMP_ENABLE_TESTS           OFF CACHE BOOL "" FORCE)
