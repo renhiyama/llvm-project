@@ -121,7 +121,14 @@ if(TARGET cxx_shared)
 endif()
 
 if(TARGET cxxabi_shared)
-  add_dependencies(omptest cxxabi_shared)
+  # Real link dependency (not just order-only): omptest embeds gtest and uses
+  # C++ ABI functions (__cxa_*, operator new/delete, _Unwind_Resume) that must
+  # be resolved at link time when -Wl,-z,defs is active (e.g. RunixOS).
+  target_link_libraries(omptest PRIVATE cxxabi_shared)
+elseif(NOT COMPILER_RT_HAS_GCC_S_LIB)
+  # No libgcc_s on this platform (e.g. RunixOS) — link against libc++abi and
+  # libunwind directly so all C++ ABI and unwind symbols are resolved.
+  target_link_libraries(omptest PRIVATE -lc++abi -lunwind)
 endif()
 
 # Add common include directories.
