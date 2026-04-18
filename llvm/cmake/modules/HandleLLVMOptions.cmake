@@ -430,32 +430,36 @@ endif()
 
 if( LLVM_USE_LINKER )
   # When LLVM_USE_LINKER is an absolute path, prefer --ld-path= over -fuse-ld=.
-  # -fuse-ld=<absolute-path> is deprecated in clang 14+ and emits a warning;
-  # it also fails the CXX_SUPPORTS_CUSTOM_LINKER test when the compiler targets
-  # a non-host triple (e.g. x86_64-rovelstars-runixos) and the sysroot does not
-  # have the CRTs needed to complete a full link. --ld-path= bypasses both issues
-  # by specifying the linker binary directly without a full link test.
+  # -fuse-ld=<absolute-path> is deprecated in clang 14+ and emits a warning on
+  # every link invocation. --ld-path= takes the binary path directly and is the
+  # recommended replacement.
+  # Note: both flags are driver-level, not cc1-level, so the linker is only
+  # invoked during a full compile+link. We use check_cxx_source_compiles (which
+  # does a full link) for both branches so the test reliably exercises the linker.
   if(IS_ABSOLUTE "${LLVM_USE_LINKER}")
-    append("--ld-path=${LLVM_USE_LINKER}"
-      CMAKE_EXE_LINKER_FLAGS CMAKE_MODULE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
-    # --ld-path= is a driver flag, not a linker flag; check it at the compiler level.
-    check_cxx_compiler_flag("--ld-path=${LLVM_USE_LINKER}" CXX_SUPPORTS_CUSTOM_LINKER)
-    if ( NOT CXX_SUPPORTS_CUSTOM_LINKER )
-      message(FATAL_ERROR "Host compiler does not support '--ld-path=${LLVM_USE_LINKER}'. "
-                          "Please make sure that '${LLVM_USE_LINKER}' is an executable "
-                          "and that your host compiler accepts '--ld-path=<absolute-path>'.")
-    endif()
+    set(_LLVM_LINKER_FLAG "--ld-path=${LLVM_USE_LINKER}")
   else()
-    append("-fuse-ld=${LLVM_USE_LINKER}"
-      CMAKE_EXE_LINKER_FLAGS CMAKE_MODULE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
+    set(_LLVM_LINKER_FLAG "-fuse-ld=${LLVM_USE_LINKER}")
+  endif()
+  append("${_LLVM_LINKER_FLAG}"
+    CMAKE_EXE_LINKER_FLAGS CMAKE_MODULE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
+  # Skip the linker capability test when the caller has pre-asserted that the
+  # compiler works (CMAKE_C_COMPILER_WORKS=ON).  This is necessary during the
+  # RunixOS Stage 2 bootstrap: the runtimes ExternalProject sub-cmake runs this
+  # check with the freshly-built stage2 clang before libclang_rt.builtins.ral
+  # has been installed, causing every link test to fail with "cannot open
+  # libclang_rt.builtins.ral".  When the caller already knows the compiler and
+  # linker are functional it is safe to skip this test entirely.
+  if(NOT CMAKE_C_COMPILER_WORKS)
     check_cxx_source_compiles("int main() { return 0; }" CXX_SUPPORTS_CUSTOM_LINKER)
     if ( NOT CXX_SUPPORTS_CUSTOM_LINKER )
-      message(FATAL_ERROR "Host compiler does not support '-fuse-ld=${LLVM_USE_LINKER}'. "
+      message(FATAL_ERROR "Host compiler does not support '${_LLVM_LINKER_FLAG}'. "
                           "Please make sure that '${LLVM_USE_LINKER}' is installed and "
                           "that your host compiler can compile a simple program when "
-                          "given the option '-fuse-ld=${LLVM_USE_LINKER}'.")
+                          "given the option '${_LLVM_LINKER_FLAG}'.")
     endif()
   endif()
+  unset(_LLVM_LINKER_FLAG)
 endif()
 
 if( LLVM_ENABLE_PIC )

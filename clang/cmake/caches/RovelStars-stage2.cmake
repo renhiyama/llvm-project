@@ -124,6 +124,32 @@ set(LLVM_ENABLE_LTO "Thin" CACHE STRING "" FORCE)
 # to Stage 3 via -DLLVM_PROFDATA_FILE=<merged.profdata>.
 set(LLVM_ENABLE_PGO "GEN" CACHE STRING "" FORCE)
 
+# ── compiler-rt / runtime library settings ────────────────────────────────────
+# These are passed through to the runtimes ExternalProject sub-build via the
+# COMPILER_RT PASSTHROUGH_PREFIXES mechanism in llvm/runtimes/CMakeLists.txt.
+# Without these, Scudo's GWP-ASan component aborts configure with
+# "No suitable unwinder library" because it can't find libgcc_s on RunixOS.
+set(COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+set(COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
+# Also set per-target so the runtimes ExternalProject runtime_register_target
+# machinery picks it up directly (the COMPILER_RT PASSTHROUGH_PREFIXES scan
+# only forwards variables that are in CMake's variable list at generation time;
+# the explicit per-target form is always forwarded).
+set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
+# libcxx/libcxxabi/libunwind: use compiler-rt and LLVM unwinder on RunixOS.
+# Also forwarded per-target to ensure they reach the runtimes sub-cmake.
+set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXXABI_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXXABI_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXX_USE_COMPILER_RT      ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-runixos_LIBUNWIND_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
+# compiler-rt needs to know to use libc++ (not libstdc++) for C++ ABI symbols
+# (typeinfo, dynamic_cast, etc.) on RunixOS. Without this, sanitizer shared libs
+# (ubsan_standalone, asan, etc.) fail to link with "undefined symbol: typeinfo for
+# std::type_info" because they default to libstdc++ which doesn't exist on RunixOS.
+set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_CXX_LIBRARY "libc++" CACHE STRING "" FORCE)
+set(COMPILER_RT_CXX_LIBRARY "libc++" CACHE STRING "" FORCE)
+
 # ── RunixOS FHS install paths (stage 2 override / explicit restatement) ───────
 # RovelStars.cmake already sets these; they are repeated here for clarity and
 # to make the stage 2 cache self-documenting. FORCE ensures they win even if

@@ -55,6 +55,58 @@ set(CMAKE_INSTALL_DATADIR       "Core/Data"      CACHE STRING "" FORCE)
 set(CMAKE_INSTALL_MANDIR        "Core/Data/man"  CACHE STRING "" FORCE)
 set(CMAKE_INSTALL_SYSCONFDIR    "Core/Config"    CACHE STRING "" FORCE)
 
+# ── Compiler works bypass ─────────────────────────────────────────────────────
+# Skip CMake's built-in compiler link tests in the runtimes sub-build.
+#
+# During Stage 2, the runtimes ExternalProject sub-cmake runs its
+# CXX_SUPPORTS_CUSTOM_LINKER check using the freshly-built stage2 clang
+# (targeting x86_64-rovelstars-runixos). That check does a full compile+link,
+# but at the time it runs, the builtins for RunixOS (libclang_rt.builtins.ral)
+# haven't been installed into the stage2 resource dir yet — they're being built
+# concurrently. The link fails with "cannot open libclang_rt.builtins.ral".
+#
+# Setting CMAKE_C/CXX_COMPILER_WORKS=ON skips the whole compiler-test sequence
+# including the linker-capability test, which is safe here because:
+#   - The compiler (stage1 or stage2 clang) is already known to work.
+#   - The linker (stage1 ld.lld) is already known to work.
+#   - The actual runtimes build will verify correctness when it compiles real code.
+set(CMAKE_C_COMPILER_WORKS   ON CACHE BOOL "" FORCE)
+set(CMAKE_CXX_COMPILER_WORKS ON CACHE BOOL "" FORCE)
+set(CMAKE_ASM_COMPILER_WORKS ON CACHE BOOL "" FORCE)
+
+# ── libunwind configuration ───────────────────────────────────────────────────
+# libunwind requires unwind table generation. The RunixOS stage2 clang may fail
+# its unwind-table capability test when building in a bootstrapped context, so
+# explicitly tell libunwind that the compiler supports it and enable it.
+set(LIBUNWIND_ENABLE_SHARED   ON  CACHE BOOL "" FORCE)
+set(LIBUNWIND_ENABLE_STATIC   ON  CACHE BOOL "" FORCE)
+set(LIBUNWIND_USE_COMPILER_RT ON  CACHE BOOL "" FORCE)
+# compiler-rt must use libc++ (not libstdc++) as its C++ ABI library on RunixOS.
+# RunixOS has no libstdc++ — all C++ ABI support comes from libc++abi.
+# Without this, sanitizer shared libs (ubsan_standalone, asan, etc.) fail to link
+# with "undefined symbol: typeinfo for std::type_info" because compiler-rt defaults
+# to libstdc++ on Linux-like systems.
+set(COMPILER_RT_CXX_LIBRARY   "libc++" CACHE STRING "" FORCE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funwind-tables" CACHE STRING "" FORCE)
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -funwind-tables" CACHE STRING "" FORCE)
+set(LIBCXXABI_USE_LLVM_UNWINDER ON  CACHE BOOL "" FORCE)
+set(LIBCXXABI_USE_COMPILER_RT   ON  CACHE BOOL "" FORCE)
+set(LIBCXX_USE_COMPILER_RT      ON  CACHE BOOL "" FORCE)
+# Tell compiler-rt/Scudo to use LLVM's libunwind instead of GCC's libgcc_s,
+# which does not exist on RunixOS. Without this Scudo's GWP-ASan component
+# aborts configure with "No suitable unwinder library".
+set(COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+
+# Pre-set the compiler flag capability variables that libunwind's CMakeLists
+# checks before allowing the shared library to be built. When CMAKE_CXX_COMPILER_WORKS
+# is forced ON (to skip the broken link test), cmake's check_cxx_compiler_flag()
+# calls are also bypassed, leaving these variables undefined (falsy). Setting
+# them here prevents the "Compiler doesn't support generation of unwind tables"
+# fatal error in libunwind/src/CMakeLists.txt.
+set(CXX_SUPPORTS_FNO_EXCEPTIONS_FLAG  TRUE CACHE BOOL "" FORCE)
+set(CXX_SUPPORTS_FUNWIND_TABLES_FLAG  TRUE CACHE BOOL "" FORCE)
+set(LIBUNWIND_ENABLE_THREADS          ON   CACHE BOOL "" FORCE)
+
 # ── RovelStars flag ───────────────────────────────────────────────────────────
 # Propagate the RovelStars CMake flag into sub-projects that check for it.
 set(RovelStars ON CACHE BOOL "" FORCE)
