@@ -2257,11 +2257,6 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
     return;
   }
 
-  if (TargetTriple.isOSRunixOS()) {
-    Prefixes.push_back(concat(SysRoot, "/Core/LibKit"));
-    return;
-  }
-
   if (TargetTriple.isOSSolaris()) {
     // Solaris is a special case.
     // The GCC installation is under
@@ -2503,33 +2498,6 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
                            end(SolarisSparcV9Triples));
       BiarchTripleAliases.append(begin(SolarisSparcV8Triples),
                                  end(SolarisSparcV8Triples));
-      break;
-    default:
-      break;
-    }
-    return;
-  }
-
-  if (TargetTriple.isOSRunixOS()) {
-    static const char *const RunixOSLibDirs[] = {"/Core/LibKit"};
-    static const char *const Aarch64RunixOSTriples[] = {
-        "aarch64-rovelstars-runixos"};
-    static const char *const X86_64RunixOSTriples[] = {
-        "x86_64-rovelstars-runixos"};
-    LibDirs.append(begin(RunixOSLibDirs), end(RunixOSLibDirs));
-    BiarchLibDirs.append(begin(RunixOSLibDirs), end(RunixOSLibDirs));
-    // RunixOS intentionally has no biarch/multilib support. It targets only
-    // 64-bit architectures (x86_64 and aarch64) and does not ship 32-bit
-    // or cross-architecture runtime libraries. No BiarchTripleAliases are
-    // populated here by design.
-    switch (TargetTriple.getArch()) {
-    case llvm::Triple::aarch64:
-      TripleAliases.append(begin(Aarch64RunixOSTriples),
-                           end(Aarch64RunixOSTriples));
-      break;
-    case llvm::Triple::x86_64:
-      TripleAliases.append(begin(X86_64RunixOSTriples),
-                           end(X86_64RunixOSTriples));
       break;
     default:
       break;

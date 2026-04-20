@@ -356,11 +356,7 @@ protected:
     // Linux defines; list based off of gcc output
     DefineStd(Builder, "unix", Opts);
     DefineStd(Builder, "linux", Opts);
-    if (Triple.isOSRunixOS()) {
-      Builder.defineMacro("__RovelStars__", "1");
-      Builder.defineMacro("__RUNIX__", "1");
-      this->PlatformName = "runixos";
-    }
+
     if (Triple.isAndroid()) {
       Builder.defineMacro("__ANDROID__", "1");
       this->PlatformName = "android";
@@ -441,6 +437,36 @@ protected:
 
 public:
   ManagarmTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
+      : OSTargetInfo<Target>(Triple, Opts) {
+    switch (Triple.getArch()) {
+    default:
+      break;
+    case llvm::Triple::x86:
+    case llvm::Triple::x86_64:
+      this->HasFloat128 = true;
+      break;
+    }
+  }
+};
+
+// RunixOS Target
+template <typename Target>
+class LLVM_LIBRARY_VISIBILITY RunixOSTargetInfo : public OSTargetInfo<Target> {
+protected:
+  void getOSDefines(const LangOptions &Opts, const llvm::Triple &Triple,
+                    MacroBuilder &Builder) const override {
+    DefineStd(Builder, "unix", Opts);
+    Builder.defineMacro("__runixos__");
+    Builder.defineMacro("__RovelStars__");
+    if (Opts.POSIXThreads)
+      Builder.defineMacro("_REENTRANT");
+    if (Opts.CPlusPlus)
+      Builder.defineMacro("_GNU_SOURCE");
+    if (this->HasFloat128)
+      Builder.defineMacro("__FLOAT128__");
+  }
+public:
+  RunixOSTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
       : OSTargetInfo<Target>(Triple, Opts) {
     switch (Triple.getArch()) {
     default:
