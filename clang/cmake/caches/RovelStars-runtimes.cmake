@@ -24,20 +24,32 @@
 #   RunixOS sysroot image.
 
 # ── Linker ────────────────────────────────────────────────────────────────────
-# Use the absolute path to the system lld so the freshly-built stage1 clang
-# can locate it without searching PATH relative to its own prefix.
-# LLVM_USE_LINKER is set to "lld" by the top-level LLVM_ENABLE_LLD passthrough;
-# overriding it here (via -C cache file) is not sufficient because -D flags
-# take precedence. The ExternalProject machinery passes it as a -D argument.
-# We work around this by using the full path, which clang accepts as-is via
-# -fuse-ld=<absolute-path>.
-set(LLVM_USE_LINKER "/usr/bin/ld.lld" CACHE STRING "" FORCE)
+# Use "lld" by short name rather than an absolute path so the runtimes build
+# is reproducible across machines.  Using /usr/bin/ld.lld would bake a
+# host-specific path into the cache, meaning two developers with lld installed
+# in different locations would get different runtimes linker behavior and
+# potentially non-reproducible archive artifacts.
+# The ExternalProject machinery passes LLVM_USE_LINKER as a -D arg (overriding
+# -C cache), so this setting is effectively carried forward from the top-level
+# RovelStars.cmake which also sets it to "lld".
+# NOTE: Requires ld.lld to be on PATH in the build environment.
+# Stage 2/3 override this on the cmake command line with the absolute path to
+# the just-built stage1/stage2 ld.lld binary.
+set(LLVM_USE_LINKER "lld" CACHE STRING "" FORCE)
 
 # ── Host triple override for Stage 1 ─────────────────────────────────────────
 # Force the runtimes sub-build to target the host triple so that CRT files,
 # system headers, and libraries are found correctly on the build machine.
 # Without this the stage1 clang (default triple x86_64-rovelstars-runixos)
 # looks for RunixOS-specific paths that don't exist on the build host.
+#
+# Reproducibility note: the host triple is hardcoded here as
+# "x86_64-unknown-linux-gnu". This is intentional for Stage 1 — the runtimes
+# must build for the host. However it means this cache only supports x86_64
+# Linux build hosts. If you build on a different architecture, pass the correct
+# triple explicitly: -DCMAKE_C_COMPILER_TARGET=<host-triple>
+# A future improvement would be to detect the host triple at configure time
+# using CMAKE_HOST_SYSTEM_PROCESSOR instead of hardcoding it.
 set(CMAKE_C_COMPILER_TARGET   "x86_64-unknown-linux-gnu" CACHE STRING "" FORCE)
 set(CMAKE_CXX_COMPILER_TARGET "x86_64-unknown-linux-gnu" CACHE STRING "" FORCE)
 set(CMAKE_ASM_COMPILER_TARGET "x86_64-unknown-linux-gnu" CACHE STRING "" FORCE)

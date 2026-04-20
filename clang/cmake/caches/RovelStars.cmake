@@ -60,14 +60,13 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 
 
 # ── Linker ────────────────────────────────────────────────────────────────────
-# Use LLVM_USE_LINKER with the absolute path to the system ld.lld.
-# LLVM_ENABLE_LLD is mutually exclusive with LLVM_USE_LINKER (they conflict),
-# so we use LLVM_USE_LINKER directly. The absolute path ensures both the
-# top-level build and the runtimes ExternalProject sub-build (which receives
-# LLVM_USE_LINKER as a -D passthrough argument) can locate the linker without
-# searching relative to the freshly-built stage1 compiler prefix.
+# Use "lld" by name rather than an absolute path so the build is reproducible
+# across machines with lld installed in different locations.  The caller must
+# ensure lld (specifically ld.lld) is on PATH.
+# Note: Stage 1 uses the system lld; Stages 2/3 override this on the cmake
+# command line with an absolute path to the just-built ld.lld.
 set(LLVM_ENABLE_LLD OFF CACHE BOOL "" FORCE)
-set(LLVM_USE_LINKER "/usr/bin/ld.lld" CACHE STRING "" FORCE)
+set(LLVM_USE_LINKER "lld" CACHE STRING "" FORCE)
 
 # ── Target triple ─────────────────────────────────────────────────────────────
 # Stage 1: do NOT set LLVM_DEFAULT_TARGET_TRIPLE to a RunixOS triple.
@@ -107,6 +106,25 @@ set(LLVM_USE_LINKER "/usr/bin/ld.lld" CACHE STRING "" FORCE)
 #   set(BUILTINS_aarch64-rovelstars-runixos_CMAKE_INSTALL_LIBDIR     "Core/LibKit" CACHE STRING "" FORCE)
 #   set(BUILTINS_aarch64-rovelstars-runixos_CMAKE_SYSROOT            "/path/to/aarch64-sysroot" CACHE PATH "" FORCE)
 set(LLVM_BUILTIN_TARGETS "default" CACHE STRING "" FORCE)
+
+# ── Reproducibility flags ────────────────────────────────────────────────────
+# LLVM_APPEND_VC_REV embeds the live `git rev-parse HEAD` SHA into every clang
+# binary via VCSVersion.inc.  This makes two builds from the same source but
+# different git states differ byte-for-byte.  Turn it off so Stage 2 and Stage 3
+# produce identical binaries when built from the same source, enabling proper
+# bootstrap reproducibility verification.
+# If you want the SHA in release builds, override on the command line:
+#   -DLLVM_APPEND_VC_REV=ON -DLLVM_FORCE_VC_REVISION=<pinned-sha>
+set(LLVM_APPEND_VC_REV       OFF CACHE BOOL   "" FORCE)
+set(LLVM_FORCE_VC_REVISION   ""  CACHE STRING "" FORCE)
+
+# For bit-for-bit reproducible static archives (.ral files), set
+# SOURCE_DATE_EPOCH=0 in the build environment before invoking cmake.
+# This makes ar/ranlib use a fixed epoch timestamp for archive members
+# instead of the current wall-clock time.  Example wrapper:
+#   export SOURCE_DATE_EPOCH=0
+#   export ZERO_AR_DATE=1   # for llvm-ar determinism
+#   cmake -C clang/cmake/caches/RovelStars.cmake ...
 
 # ── Feature flags ─────────────────────────────────────────────────────────────
 set(LLVM_ENABLE_WERROR        OFF CACHE BOOL "" FORCE)
