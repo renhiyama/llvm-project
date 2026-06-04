@@ -257,8 +257,7 @@ public:
     ChipStar,
     Firmware,
     QURT,
-    RunixOS,
-    LastOSType = RunixOS
+    LastOSType = QURT
   };
   enum EnvironmentType {
     UnknownEnvironment,
@@ -322,7 +321,8 @@ public:
     Mlibc,
     PAuthTest,
     MTIA,
-    LastEnvironmentType = MTIA
+    RunixOS, // RovelStars RunixOS - a Linux userspace environment (custom libc)
+    LastEnvironmentType = RunixOS
   };
   enum ObjectFormatType {
     UnknownObjectFormat,
@@ -710,9 +710,10 @@ public:
     return getVendor() == Triple::RovelStars;
   }
 
-  /// Tests whether the OS is RunixOS.
-  bool isOSRunixOS() const {
-    return getOS() == Triple::RunixOS;
+  /// Tests whether the environment is RunixOS (a Linux userspace variant
+  /// with a custom libc and filesystem layout). The OS is Linux.
+  bool isRunixOSEnvironment() const {
+    return getEnvironment() == Triple::RunixOS;
   }
 
   /// Tests whether the OS is Windows.

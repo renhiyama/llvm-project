@@ -156,9 +156,6 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
     case llvm::Triple::Haiku:
       return std::make_unique<HaikuTargetInfo<AArch64leTargetInfo>>(Triple,
                                                                     Opts);
-    case llvm::Triple::RunixOS:
-      return std::make_unique<RunixOSTargetInfo<AArch64leTargetInfo>>(Triple,
-                                                                      Opts);
     case llvm::Triple::Linux:
       switch (Triple.getEnvironment()) {
       default:
@@ -167,6 +164,9 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
       case llvm::Triple::OpenHOS:
         return std::make_unique<OHOSTargetInfo<AArch64leTargetInfo>>(Triple,
                                                                      Opts);
+      case llvm::Triple::RunixOS:
+        return std::make_unique<RunixOSTargetInfo<AArch64leTargetInfo>>(Triple,
+                                                                        Opts);
       }
     case llvm::Triple::Managarm:
       return std::make_unique<ManagarmTargetInfo<AArch64leTargetInfo>>(Triple,
@@ -612,9 +612,6 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
       return std::make_unique<DarwinX86_64TargetInfo>(Triple, Opts);
 
     switch (os) {
-    case llvm::Triple::RunixOS:
-      return std::make_unique<RunixOSTargetInfo<X86_64TargetInfo>>(Triple,
-                                                                   Opts);
     case llvm::Triple::Linux: {
       switch (Triple.getEnvironment()) {
       default:
@@ -624,6 +621,9 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
         return std::make_unique<AndroidX86_64TargetInfo>(Triple, Opts);
       case llvm::Triple::OpenHOS:
         return std::make_unique<OHOSX86_64TargetInfo>(Triple, Opts);
+      case llvm::Triple::RunixOS:
+        return std::make_unique<RunixOSTargetInfo<X86_64TargetInfo>>(Triple,
+                                                                     Opts);
       }
     }
     case llvm::Triple::DragonFly:

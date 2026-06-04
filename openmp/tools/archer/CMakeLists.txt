@@ -29,7 +29,7 @@ if(LIBOMP_OMPT_SUPPORT AND LIBOMP_ARCHER_SUPPORT)
     target_link_libraries(archer cxxabi_shared)
     target_link_libraries(archer_static cxxabi_shared)
   elseif(NOT COMPILER_RT_HAS_GCC_S_LIB)
-    # No libgcc_s on this platform (e.g. RunixOS) — link against libc++abi.
+    # No libgcc_s on this platform (e.g. RunixOS) - link against libc++abi.
     target_link_libraries(archer -lc++abi -lunwind)
     target_link_libraries(archer_static -lc++abi -lunwind)
   endif()

@@ -126,7 +126,7 @@ if(TARGET cxxabi_shared)
   # be resolved at link time when -Wl,-z,defs is active (e.g. RunixOS).
   target_link_libraries(omptest PRIVATE cxxabi_shared)
 elseif(NOT COMPILER_RT_HAS_GCC_S_LIB)
-  # No libgcc_s on this platform (e.g. RunixOS) — link against libc++abi and
+  # No libgcc_s on this platform (e.g. RunixOS) - link against libc++abi and
   # libunwind directly so all C++ ABI and unwind symbols are resolved.
   target_link_libraries(omptest PRIVATE -lc++abi -lunwind)
 endif()

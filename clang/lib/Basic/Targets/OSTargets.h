@@ -449,34 +449,22 @@ public:
   }
 };
 
-// RunixOS Target
+// RunixOS Target - a Linux userspace environment (RovelStars). Inherits every
+// Linux predefine (__linux__, __gnu_linux__, ...) so Linux-gated code builds
+// unchanged, then adds the RunixOS markers.
 template <typename Target>
-class LLVM_LIBRARY_VISIBILITY RunixOSTargetInfo : public OSTargetInfo<Target> {
+class LLVM_LIBRARY_VISIBILITY RunixOSTargetInfo : public LinuxTargetInfo<Target> {
 protected:
   void getOSDefines(const LangOptions &Opts, const llvm::Triple &Triple,
                     MacroBuilder &Builder) const override {
-    DefineStd(Builder, "unix", Opts);
+    LinuxTargetInfo<Target>::getOSDefines(Opts, Triple, Builder);
     Builder.defineMacro("__runixos__");
     Builder.defineMacro("__RovelStars__");
-    if (Opts.POSIXThreads)
-      Builder.defineMacro("_REENTRANT");
-    if (Opts.CPlusPlus)
-      Builder.defineMacro("_GNU_SOURCE");
-    if (this->HasFloat128)
-      Builder.defineMacro("__FLOAT128__");
   }
+
 public:
   RunixOSTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
-      : OSTargetInfo<Target>(Triple, Opts) {
-    switch (Triple.getArch()) {
-    default:
-      break;
-    case llvm::Triple::x86:
-    case llvm::Triple::x86_64:
-      this->HasFloat128 = true;
-      break;
-    }
-  }
+      : LinuxTargetInfo<Target>(Triple, Opts) {}
 };
 
 // NetBSD Target

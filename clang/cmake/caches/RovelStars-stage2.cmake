@@ -6,7 +6,7 @@
 # --------
 # Stage 1 produced a host-native clang/lld in build/stage1/. This cache
 # uses that toolchain to cross-compile LLVM and its runtimes targeting
-# x86_64-rovelstars-runixos, with a RunixOS sysroot supplied by the caller.
+# x86_64-rovelstars-linux-runixos, with a RunixOS sysroot supplied by the caller.
 # The resulting toolchain is instrumented for PGO so that Stage 3 can
 # produce a fully profile-guided-optimised release toolchain.
 #
@@ -28,8 +28,8 @@
 #     -DCMAKE_C_COMPILER=/path/to/build/stage1/bin/clang \
 #     -DCMAKE_CXX_COMPILER=/path/to/build/stage1/bin/clang++ \
 #     -DLLVM_USE_LINKER=/path/to/build/stage1/bin/ld.lld \
-#     -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
-#     -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
+#     -DRUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
+#     -DBUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
 #     -DCMAKE_INSTALL_PREFIX=/path/to/install \
 #     llvm
 #
@@ -43,13 +43,13 @@
 #
 #   Instead, the sysroot is forwarded *only* to the runtimes and builtins
 #   ExternalProject sub-builds via the per-target variables below:
-#     -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=...
-#     -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=...
+#     -DRUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=...
+#     -DBUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=...
 #
 #   The top-level LLVM build (clang, lld, llvm-lib, etc.) is compiled by
-#   the stage1 host clang targeting the host triple — no sysroot needed.
+#   the stage1 host clang targeting the host triple - no sysroot needed.
 #   Only the runtime libraries (libc++, libunwind, compiler-rt, openmp)
-#   and builtins are cross-compiled for x86_64-rovelstars-runixos with
+#   and builtins are cross-compiled for x86_64-rovelstars-linux-runixos with
 #   the RunixOS sysroot.
 #
 # Outputs
@@ -77,7 +77,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/RovelStars.cmake)
 # Must be set explicitly for cross-compilation FROM a Linux host.
 # When building natively ON RunixOS, cmake/Modules/Platform/RovelStars-Initialize.cmake
 # sets this automatically. When cross-compiling from Linux (as in Stage 2), the
-# Linux platform module runs instead and the flag is never set — so clang/CMakeLists.txt
+# Linux platform module runs instead and the flag is never set - so clang/CMakeLists.txt
 # and llvm/CMakeLists.txt never enter their RunixOS-specific branches.
 # Consequences of not setting it:
 #   - CLANG_INSTALL_LIBDIR_BASENAME defaults to "lib" instead of "LibKit",
@@ -114,17 +114,17 @@ set(RovelStars ON CACHE BOOL "" FORCE)
 # ── Target triple ─────────────────────────────────────────────────────────────
 # Stage 2 targets RunixOS natively. A sysroot is required (passed by the
 # caller via -DCMAKE_SYSROOT=…) so that CRT / runtime link tests succeed.
-set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
+set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
 
 # ── Runtime targets ───────────────────────────────────────────────────────────
-set(LLVM_RUNTIME_TARGETS "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
+set(LLVM_RUNTIME_TARGETS "x86_64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
 
 # ── Builtin targets ───────────────────────────────────────────────────────────
-set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
-# AArch64 variant — uncomment when an aarch64-rovelstars-runixos sysroot is
-# available and add "aarch64-rovelstars-runixos" to the list above:
+set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
+# AArch64 variant - uncomment when an aarch64-rovelstars-linux-runixos sysroot is
+# available and add "aarch64-rovelstars-linux-runixos" to the list above:
 # set(LLVM_BUILTIN_TARGETS
-#   "x86_64-rovelstars-runixos;aarch64-rovelstars-runixos" CACHE STRING "" FORCE)
+#   "x86_64-rovelstars-linux-runixos;aarch64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
 
 # ── LTO ───────────────────────────────────────────────────────────────────────
 # LTO is disabled for stage 2 bootstrap builds.
@@ -173,16 +173,16 @@ set(COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
 # machinery picks it up directly (the COMPILER_RT PASSTHROUGH_PREFIXES scan
 # only forwards variables that are in CMake's variable list at generation time;
 # the explicit per-target form is always forwarded).
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_USE_BUILTINS_LIBRARY ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_COMPILER_RT_USE_BUILTINS_LIBRARY ON CACHE BOOL "" FORCE)
 set(COMPILER_RT_USE_BUILTINS_LIBRARY ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
 # libcxx/libcxxabi/libunwind: use compiler-rt and LLVM unwinder on RunixOS.
 # Also forwarded per-target to ensure they reach the runtimes sub-cmake.
-set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXXABI_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXXABI_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXX_USE_COMPILER_RT      ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LIBUNWIND_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LIBCXXABI_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LIBCXXABI_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LIBCXX_USE_COMPILER_RT      ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LIBUNWIND_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
 # Pass the top-level LLVM library and tools directories to the runtimes sub-build.
 #
 # Background: runtimes/CMakeLists.txt calls find_package(LLVM PATHS "${LLVM_BINARY_DIR}")
@@ -192,7 +192,7 @@ set(RUNTIMES_x86_64-rovelstars-runixos_LIBUNWIND_USE_COMPILER_RT   ON CACHE BOOL
 # standard lib/cmake search path it fails (LLVM_FOUND=OFF), and the fallback in
 # runtimes/CMakeLists.txt computes LLVM_LIBRARY_DIR as a path RELATIVE to the runtimes
 # binary dir. This causes all compiler-rt output-directory calculations inside the
-# runtimes cmake (which use LLVM_LIBRARY_DIR as an anchor) to be wrong — the builtins
+# runtimes cmake (which use LLVM_LIBRARY_DIR as an anchor) to be wrong - the builtins
 # sources file ends up at a relative unresolvable path inside the runtimes binary dir.
 #
 # Fixes:
@@ -201,24 +201,24 @@ set(RUNTIMES_x86_64-rovelstars-runixos_LIBUNWIND_USE_COMPILER_RT   ON CACHE BOOL
 #   2. Also pass LLVM_LIBRARY_DIR and LLVM_TOOLS_BINARY_DIR explicitly as absolute
 #      paths so the runtimes cmake can set LLVM_TREE_AVAILABLE=ON even if
 #      find_package somehow still fails.
-set(RUNTIMES_x86_64-rovelstars-runixos_CMAKE_PREFIX_PATH
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_PREFIX_PATH
   "${CMAKE_BINARY_DIR}/Core/LibKit" CACHE PATH "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LLVM_LIBRARY_DIR
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LLVM_LIBRARY_DIR
   "${CMAKE_BINARY_DIR}/Core/LibKit" CACHE PATH "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LLVM_TOOLS_BINARY_DIR
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LLVM_TOOLS_BINARY_DIR
   "${CMAKE_BINARY_DIR}/Core/Bin" CACHE PATH "" FORCE)
 # compiler-rt needs to know to use libc++ (not libstdc++) for C++ ABI symbols
 # (typeinfo, dynamic_cast, etc.) on RunixOS. Without this, sanitizer shared libs
 # (ubsan_standalone, asan, etc.) fail to link with "undefined symbol: typeinfo for
 # std::type_info" because they default to libstdc++ which doesn't exist on RunixOS.
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
 set(COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
 # Tell sanitizers to use libc++abi for C++ ABI support (typeinfo, dynamic_cast).
 # Without this SANITIZER_CXX_ABI defaults to "default" which resolves to libstdc++
-# on Linux-like systems — but RunixOS has no libstdc++. Setting INTREE tells
+# on Linux-like systems - but RunixOS has no libstdc++. Setting INTREE tells
 # compiler-rt to link against the libc++abi being built in the same runtimes batch.
-set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI         "libcxxabi" CACHE STRING "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI_INTREE  ON          CACHE BOOL   "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_SANITIZER_CXX_ABI         "libcxxabi" CACHE STRING "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_SANITIZER_CXX_ABI_INTREE  ON          CACHE BOOL   "" FORCE)
 set(SANITIZER_CXX_ABI        "libcxxabi" CACHE STRING "" FORCE)
 set(SANITIZER_CXX_ABI_INTREE ON          CACHE BOOL   "" FORCE)
 
@@ -236,60 +236,60 @@ set(CMAKE_INSTALL_MANDIR        "Core/Data/man"      CACHE STRING "" FORCE)
 set(CMAKE_INSTALL_SYSCONFDIR    "Core/Config"        CACHE STRING "" FORCE)
 set(CMAKE_INSTALL_INFODIR       "Core/Data/info"     CACHE STRING "" FORCE)
 
-# ── Per-target runtime settings: x86_64-rovelstars-runixos ───────────────────
+# ── Per-target runtime settings: x86_64-rovelstars-linux-runixos ───────────────────
 #
 # CMAKE_SYSROOT: the caller MUST supply this, either via the top-level
 # -DCMAKE_SYSROOT=… (which does NOT propagate into sub-builds automatically)
 # or by passing it explicitly on the cmake command line:
-#   -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot
+#   -DRUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot
 #
-set(RUNTIMES_x86_64-rovelstars-runixos_LLVM_ENABLE_RUNTIMES
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LLVM_ENABLE_RUNTIMES
   "compiler-rt;libcxx;libcxxabi;libunwind;openmp"
   CACHE STRING "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_CMAKE_INSTALL_LIBDIR
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_INSTALL_LIBDIR
   "Core/LibKit"
   CACHE STRING "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_CMAKE_INSTALL_BINDIR
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_INSTALL_BINDIR
   "Core/Bin"
   CACHE STRING "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_RovelStars ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_RovelStars ON CACHE BOOL "" FORCE)
 
-# ── Per-target builtin settings: x86_64-rovelstars-runixos ───────────────────
+# ── Per-target builtin settings: x86_64-rovelstars-linux-runixos ───────────────────
 #
 # CMAKE_SYSROOT: same requirement as for runtimes above.
 # Pass via:
-#   -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot
+#   -DBUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot
 #
-set(BUILTINS_x86_64-rovelstars-runixos_RovelStars ON CACHE BOOL "" FORCE)
-set(BUILTINS_x86_64-rovelstars-runixos_CMAKE_INSTALL_LIBDIR
+set(BUILTINS_x86_64-rovelstars-linux-runixos_RovelStars ON CACHE BOOL "" FORCE)
+set(BUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_INSTALL_LIBDIR
   "Core/LibKit"
   CACHE STRING "" FORCE)
-set(BUILTINS_x86_64-rovelstars-runixos_CMAKE_INSTALL_BINDIR
+set(BUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_INSTALL_BINDIR
   "Core/Bin"
   CACHE STRING "" FORCE)
 
 # ── AArch64 per-target settings (Stage 2/3, currently commented out) ─────────
-# Uncomment and add "aarch64-rovelstars-runixos" to LLVM_BUILTIN_TARGETS /
+# Uncomment and add "aarch64-rovelstars-linux-runixos" to LLVM_BUILTIN_TARGETS /
 # LLVM_RUNTIME_TARGETS above once an AArch64 RunixOS sysroot is available.
 #
-# set(RUNTIMES_aarch64-rovelstars-runixos_LLVM_ENABLE_RUNTIMES
+# set(RUNTIMES_aarch64-rovelstars-linux-runixos_LLVM_ENABLE_RUNTIMES
 #   "compiler-rt;libcxx;libcxxabi;libunwind;openmp"
 #   CACHE STRING "" FORCE)
-# set(RUNTIMES_aarch64-rovelstars-runixos_CMAKE_INSTALL_LIBDIR
+# set(RUNTIMES_aarch64-rovelstars-linux-runixos_CMAKE_INSTALL_LIBDIR
 #   "Core/LibKit"
 #   CACHE STRING "" FORCE)
-# set(RUNTIMES_aarch64-rovelstars-runixos_CMAKE_INSTALL_BINDIR
+# set(RUNTIMES_aarch64-rovelstars-linux-runixos_CMAKE_INSTALL_BINDIR
 #   "Core/Bin"
 #   CACHE STRING "" FORCE)
-# set(RUNTIMES_aarch64-rovelstars-runixos_RovelStars ON CACHE BOOL "" FORCE)
+# set(RUNTIMES_aarch64-rovelstars-linux-runixos_RovelStars ON CACHE BOOL "" FORCE)
 #
-# set(BUILTINS_aarch64-rovelstars-runixos_RovelStars ON CACHE BOOL "" FORCE)
-# set(BUILTINS_aarch64-rovelstars-runixos_CMAKE_INSTALL_LIBDIR
+# set(BUILTINS_aarch64-rovelstars-linux-runixos_RovelStars ON CACHE BOOL "" FORCE)
+# set(BUILTINS_aarch64-rovelstars-linux-runixos_CMAKE_INSTALL_LIBDIR
 #   "Core/LibKit"
 #   CACHE STRING "" FORCE)
-# set(BUILTINS_aarch64-rovelstars-runixos_CMAKE_INSTALL_BINDIR
+# set(BUILTINS_aarch64-rovelstars-linux-runixos_CMAKE_INSTALL_BINDIR
 #   "Core/Bin"
 #   CACHE STRING "" FORCE)
-# set(BUILTINS_aarch64-rovelstars-runixos_CMAKE_SYSROOT
+# set(BUILTINS_aarch64-rovelstars-linux-runixos_CMAKE_SYSROOT
 #   "/path/to/aarch64-runixos-sysroot"
 #   CACHE PATH "" FORCE)

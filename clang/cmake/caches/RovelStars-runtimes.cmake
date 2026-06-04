@@ -5,7 +5,7 @@
 #
 # 1. Override LLVM_USE_LINKER with the full path to the system ld.lld.
 #    The freshly-built stage1 clang binary lives in build/stage1/bin/ and
-#    its default target triple is x86_64-rovelstars-runixos. When CMake runs
+#    its default target triple is x86_64-rovelstars-linux-runixos. When CMake runs
 #    the CXX_SUPPORTS_CUSTOM_LINKER test with "-fuse-ld=lld", clang tries to
 #    link against RunixOS CRT / runtime libs that don't exist on the build
 #    machine, causing the test to fail. Using the full absolute path bypasses
@@ -19,8 +19,8 @@
 #    proper RunixOS sysroot is available.
 #
 # Stage 2 / Stage 3 note:
-#   Replace the COMPILER_TARGET lines with x86_64-rovelstars-runixos (or
-#   aarch64-rovelstars-runixos) and provide a CMAKE_SYSROOT pointing to the
+#   Replace the COMPILER_TARGET lines with x86_64-rovelstars-linux-runixos (or
+#   aarch64-rovelstars-linux-runixos) and provide a CMAKE_SYSROOT pointing to the
 #   RunixOS sysroot image.
 
 # ── Linker ────────────────────────────────────────────────────────────────────
@@ -40,11 +40,11 @@ set(LLVM_USE_LINKER "lld" CACHE STRING "" FORCE)
 # ── Host triple override for Stage 1 ─────────────────────────────────────────
 # Force the runtimes sub-build to target the host triple so that CRT files,
 # system headers, and libraries are found correctly on the build machine.
-# Without this the stage1 clang (default triple x86_64-rovelstars-runixos)
+# Without this the stage1 clang (default triple x86_64-rovelstars-linux-runixos)
 # looks for RunixOS-specific paths that don't exist on the build host.
 #
 # Reproducibility note: the host triple is hardcoded here as
-# "x86_64-unknown-linux-gnu". This is intentional for Stage 1 — the runtimes
+# "x86_64-unknown-linux-gnu". This is intentional for Stage 1 - the runtimes
 # must build for the host. However it means this cache only supports x86_64
 # Linux build hosts. If you build on a different architecture, pass the correct
 # triple explicitly: -DCMAKE_C_COMPILER_TARGET=<host-triple>
@@ -72,9 +72,9 @@ set(CMAKE_INSTALL_SYSCONFDIR    "Core/Config"    CACHE STRING "" FORCE)
 #
 # During Stage 2, the runtimes ExternalProject sub-cmake runs its
 # CXX_SUPPORTS_CUSTOM_LINKER check using the freshly-built stage2 clang
-# (targeting x86_64-rovelstars-runixos). That check does a full compile+link,
+# (targeting x86_64-rovelstars-linux-runixos). That check does a full compile+link,
 # but at the time it runs, the builtins for RunixOS (libclang_rt.builtins.ral)
-# haven't been installed into the stage2 resource dir yet — they're being built
+# haven't been installed into the stage2 resource dir yet - they're being built
 # concurrently. The link fails with "cannot open libclang_rt.builtins.ral".
 #
 # Setting CMAKE_C/CXX_COMPILER_WORKS=ON skips the whole compiler-test sequence
@@ -94,7 +94,7 @@ set(LIBUNWIND_ENABLE_SHARED   ON  CACHE BOOL "" FORCE)
 set(LIBUNWIND_ENABLE_STATIC   ON  CACHE BOOL "" FORCE)
 set(LIBUNWIND_USE_COMPILER_RT ON  CACHE BOOL "" FORCE)
 # compiler-rt must use libc++ (not libstdc++) as its C++ ABI library on RunixOS.
-# RunixOS has no libstdc++ — all C++ ABI support comes from libc++abi.
+# RunixOS has no libstdc++ - all C++ ABI support comes from libc++abi.
 # Without this, sanitizer shared libs (ubsan_standalone, asan, etc.) fail to link
 # with "undefined symbol: typeinfo for std::type_info" because compiler-rt defaults
 # to libstdc++ on Linux-like systems.

@@ -28,9 +28,9 @@ std::string RunixOS::getMultiarchTriple(const Driver &D,
                                         StringRef SysRoot) const {
   switch (TargetTriple.getArch()) {
   case llvm::Triple::x86_64:
-    return "x86_64-rovelstars-runixos";
+    return "x86_64-rovelstars-linux-runixos";
   case llvm::Triple::aarch64:
-    return "aarch64-rovelstars-runixos";
+    return "aarch64-rovelstars-linux-runixos";
   default:
     return TargetTriple.str();
   }
@@ -39,11 +39,14 @@ std::string RunixOS::getMultiarchTriple(const Driver &D,
 RunixOS::RunixOS(const Driver &D, const llvm::Triple &Triple,
                  const ArgList &Args)
     : Generic_ELF(D, Triple, Args) {
-  // Initialise GCC installation detection. RunixOS prefers compiler-rt, but
-  // a GCC toolchain may still be present in /Core/LibKit and we want the
-  // GCCInstallationDetector to find it so that GCC-based multilib paths and
-  // CRT objects are located correctly when needed.
-  GCCInstallation.init(Triple, Args);
+  // RunixOS uses compiler-rt and libc++ exclusively; there is no GCC toolchain
+  // to detect. Do not call GCCInstallation.init() - it would scan hundreds of
+  // candidate directories and discard the result (we never call isValid() or
+  // getMultilibs()). Compare Fuchsia, which also skips GCC detection.
+
+#ifdef ENABLE_LINKER_BUILD_ID
+  ExtraOpts.push_back("--build-id");
+#endif
 
   std::string SysRoot = computeSysRoot();
 
@@ -78,8 +81,17 @@ std::string RunixOS::getDynamicLinker(const ArgList &Args) const {
   case llvm::Triple::aarch64:
     return "/Core/LibKit/ld-runixos-aarch64.rdl.1";
   default:
-    llvm_unreachable("unsupported architecture for RunixOS dynamic linker");
+    // Unsupported architecture - return empty so the linker invocation omits
+    // the -dynamic-linker flag rather than invoking undefined behaviour.
+    // The user will get a linker error explaining the missing interpreter,
+    // which is far better than UB in a release build.
+    return {};
   }
+}
+
+void RunixOS::addExtraOpts(llvm::opt::ArgStringList &CmdArgs) const {
+  for (const auto &Opt : ExtraOpts)
+    CmdArgs.push_back(Opt.c_str());
 }
 
 void RunixOS::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
@@ -101,7 +113,7 @@ void RunixOS::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   if (DriverArgs.hasArg(options::OPT_nostdlibinc))
     return;
 
-  // Primary system headers — immutable, SIP-protected ring.
+  // Primary system headers - immutable, SIP-protected ring.
   // RunixOS has no /usr; all system headers live under /Core/APIHeader.
   addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/Core/APIHeader"));
 
@@ -136,12 +148,18 @@ SanitizerMask RunixOS::getSupportedSanitizers() const {
   Res |= SanitizerKind::Address;
   Res |= SanitizerKind::HWAddress;
   Res |= SanitizerKind::KernelAddress;
-  Res |= SanitizerKind::MemTag;
+  // NOTE: SanitizerKind::MemTag is intentionally excluded. MemTag (AArch64 MTE)
+  // is gated on Android in addSanitizerRuntimes() and emits a hard driver error
+  // for any non-Android target, so advertising it would silently accept
+  // -fsanitize=memtag then fail at link time.
   Res |= SanitizerKind::Thread;
   Res |= SanitizerKind::Memory;
   Res |= SanitizerKind::Leak;
   Res |= SanitizerKind::Undefined;
-  Res |= SanitizerKind::CFI;
+  // NOTE: SanitizerKind::CFI is intentionally excluded until RunixOS has a
+  // ConstructJob override that emits --export-dynamic-symbol=__cfi_check for
+  // cross-DSO CFI. Advertising the group mask without that plumbing produces
+  // silently broken binaries.
   Res |= SanitizerKind::DataFlow;
   Res |= SanitizerKind::PointerCompare;
   Res |= SanitizerKind::PointerSubtract;
@@ -155,5 +173,20 @@ SanitizerMask RunixOS::getSupportedSanitizers() const {
     Res |= SanitizerKind::NumericalStability;
   }
 
+  return Res;
+}
+
+SanitizerMask RunixOS::getDefaultSanitizers() const {
+  SanitizerMask Res;
+  // Enable ShadowCallStack by default on AArch64 - the hardware support is
+  // always present and the performance cost is negligible.  Mirror Fuchsia's
+  // policy for a security-hardened OS.
+  switch (getTriple().getArch()) {
+  case llvm::Triple::aarch64:
+    Res |= SanitizerKind::ShadowCallStack;
+    break;
+  default:
+    break;
+  }
   return Res;
 }

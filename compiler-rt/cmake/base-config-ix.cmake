@@ -125,8 +125,8 @@ if(LLVM_ENABLE_PER_TARGET_RUNTIME_DIR AND NOT APPLE)
   if(RovelStars)
     # On RunixOS, COMPILER_RT_OUTPUT_DIR is already the clang resource dir
     # (e.g. build/stage2/Core/LibKit/clang/23). The per-target subdirectory
-    # (e.g. x86_64-rovelstars-runixos) is appended by get_compiler_rt_output_dir.
-    # We must NOT append CMAKE_INSTALL_LIBDIR (Core/LibKit) here — that would
+    # (e.g. x86_64-rovelstars-linux-runixos) is appended by get_compiler_rt_output_dir.
+    # We must NOT append CMAKE_INSTALL_LIBDIR (Core/LibKit) here - that would
     # double up the path to build/stage2/Core/LibKit/clang/23/Core/LibKit/...
     # Use the same layout as the non-RovelStars branch: just a "lib" subdirectory.
     set(COMPILER_RT_OUTPUT_LIBRARY_DIR

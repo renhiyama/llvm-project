@@ -1463,23 +1463,24 @@ TEST(TripleTest, ParsedIDs) {
   EXPECT_EQ(Triple::Managarm, T.getOS());
   EXPECT_EQ(Triple::Mlibc, T.getEnvironment());
 
-  T = Triple("x86_64-rovelstars-runixos");
+  T = Triple("x86_64-rovelstars-linux-runixos");
   EXPECT_EQ(Triple::x86_64, T.getArch());
   EXPECT_EQ(Triple::RovelStars, T.getVendor());
-  EXPECT_EQ(Triple::RunixOS, T.getOS());
-  EXPECT_EQ(Triple::UnknownEnvironment, T.getEnvironment());
-  EXPECT_TRUE(T.isOSRunixOS());
-  EXPECT_FALSE(T.isOSLinux());
-  EXPECT_EQ("runixos", Triple::getOSTypeName(Triple::RunixOS));
+  EXPECT_EQ(Triple::Linux, T.getOS());
+  EXPECT_EQ(Triple::RunixOS, T.getEnvironment());
+  EXPECT_TRUE(T.isRunixOSEnvironment());
+  EXPECT_TRUE(T.isOSLinux());
+  EXPECT_EQ("runixos", Triple::getEnvironmentTypeName(Triple::RunixOS));
 
-  T = Triple("aarch64-rovelstars-runixos");
+  T = Triple("aarch64-rovelstars-linux-runixos");
   EXPECT_EQ(Triple::aarch64, T.getArch());
   EXPECT_EQ(Triple::RovelStars, T.getVendor());
-  EXPECT_EQ(Triple::RunixOS, T.getOS());
-  EXPECT_TRUE(T.isOSRunixOS());
+  EXPECT_EQ(Triple::Linux, T.getOS());
+  EXPECT_EQ(Triple::RunixOS, T.getEnvironment());
+  EXPECT_TRUE(T.isRunixOSEnvironment());
 
-  EXPECT_EQ("x86_64-rovelstars-runixos",
-            Triple::normalize("x86_64-rovelstars-runixos"));
+  EXPECT_EQ("x86_64-rovelstars-linux-runixos",
+            Triple::normalize("x86_64-rovelstars-linux-runixos"));
 
   T = Triple("huh");
   EXPECT_EQ(Triple::UnknownArch, T.getArch());

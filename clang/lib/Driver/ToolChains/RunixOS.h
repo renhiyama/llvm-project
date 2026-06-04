@@ -48,15 +48,22 @@ public:
 
   const char *getDefaultLinker() const override { return "ld.lld"; }
 
+  bool isPICDefault() const override { return false; }
+  bool isPIEDefault(const llvm::opt::ArgList &Args) const override {
+    return true;
+  }
+  bool isPICDefaultForced() const override { return false; }
+
   SanitizerMask getSupportedSanitizers() const override;
+  SanitizerMask getDefaultSanitizers() const override;
 
   std::string computeSysRoot() const override;
 
   std::string getDynamicLinker(const llvm::opt::ArgList &Args) const override;
 
-  bool isPIEDefault(const llvm::opt::ArgList &Args) const override {
-    return true;
-  }
+  void addExtraOpts(llvm::opt::ArgStringList &CmdArgs) const override;
+
+  std::vector<std::string> ExtraOpts;
 
 protected:
   Tool *buildLinker() const override;

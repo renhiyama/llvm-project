@@ -15,14 +15,14 @@
 #     -DCMAKE_C_COMPILER=/path/to/build/stage1/bin/clang \
 #     -DCMAKE_CXX_COMPILER=/path/to/build/stage1/bin/clang++ \
 #     -DLLVM_USE_LINKER=/path/to/build/stage2/Core/Bin/ld.lld \
-#     -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/sysroot \
-#     -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/sysroot \
+#     -DRUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/sysroot \
+#     -DBUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/sysroot \
 #     -DCMAKE_INSTALL_PREFIX=/RunixOS \
 #     -B build/stage3 llvm
 #
 # FULL / OPTIMISED MODE (ROVELSTARS_STAGE3_FAST=OFF)
 # ───────────────────────────────────────────────────
-# ThinLTO + PGO USE — the real release-quality toolchain.  Requires a merged
+# ThinLTO + PGO USE - the real release-quality toolchain.  Requires a merged
 # .profdata file from Stage 2 profile collection.  Takes several hours.
 #
 #   cmake -G Ninja \
@@ -32,8 +32,8 @@
 #     -DCMAKE_CXX_COMPILER=/path/to/build/stage1/bin/clang++ \
 #     -DLLVM_USE_LINKER=/path/to/build/stage2/Core/Bin/ld.lld \
 #     -DLLVM_PROFDATA_FILE=/path/to/build/pgo-profiles/stage2.profdata \
-#     -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/sysroot \
-#     -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/sysroot \
+#     -DRUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/sysroot \
+#     -DBUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/sysroot \
 #     -DCMAKE_INSTALL_PREFIX=/RunixOS \
 #     -B build/stage3 llvm
 #
@@ -42,8 +42,8 @@
 #
 # Stage 3 vs Stage 2 differences
 # ────────────────────────────────
-#   Stage 2  — instrumented (PGO GEN), no LTO, profile collection
-#   Stage 3  — fast mode: no LTO/PGO; full mode: PGO USE + ThinLTO
+#   Stage 2  - instrumented (PGO GEN), no LTO, profile collection
+#   Stage 3  - fast mode: no LTO/PGO; full mode: PGO USE + ThinLTO
 
 # ── Fast/verification mode toggle ────────────────────────────────────────────
 option(ROVELSTARS_STAGE3_FAST
@@ -55,17 +55,17 @@ option(ROVELSTARS_STAGE3_FAST
 # In fast mode we override LLVM_ENABLE_PROJECTS to clang+lld only.
 include(${CMAKE_CURRENT_LIST_DIR}/RovelStars.cmake)
 
-# Fast mode: build only clang and lld — the minimum needed to verify the
+# Fast mode: build only clang and lld - the minimum needed to verify the
 # 3-stage pipeline produces a working RunixOS-targeting toolchain.
 if(ROVELSTARS_STAGE3_FAST)
   set(LLVM_ENABLE_PROJECTS "clang;lld" CACHE STRING "" FORCE)
-  message(STATUS "RovelStars Stage 3: FAST/verification mode — "
+  message(STATUS "RovelStars Stage 3: FAST/verification mode - "
     "clang+lld only, no LTO, no PGO.  "
     "Pass -DROVELSTARS_STAGE3_FAST=OFF for the full optimised build.")
 endif()
 
 # ── Bypass libstdc++ version check ───────────────────────────────────────────
-# (Applies in both fast and full mode — same root cause either way.)
+# (Applies in both fast and full mode - same root cause either way.)
 # CheckCompilerVersion.cmake runs check_cxx_source_compiles (compile+link) to
 # verify libstdc++ is at least version 7.4.  The link step fails when
 # CMAKE_SHARED_LIBRARY_SUFFIX=.rdl (set by llvm/CMakeLists.txt when RovelStars=ON)
@@ -103,25 +103,25 @@ set(RovelStars ON CACHE BOOL "" FORCE)
 
 # ── Default target triple ─────────────────────────────────────────────────────
 # Stage 3 targets RunixOS natively, same as Stage 2.
-set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
+set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
 
 # ── Runtime and builtin targets ───────────────────────────────────────────────
-set(LLVM_RUNTIME_TARGETS "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
-set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
+set(LLVM_RUNTIME_TARGETS "x86_64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
+set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
 
-# AArch64 — uncomment once an aarch64-rovelstars-runixos sysroot is available:
+# AArch64 - uncomment once an aarch64-rovelstars-linux-runixos sysroot is available:
 # set(LLVM_RUNTIME_TARGETS
-#   "x86_64-rovelstars-runixos;aarch64-rovelstars-runixos" CACHE STRING "" FORCE)
+#   "x86_64-rovelstars-linux-runixos;aarch64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
 # set(LLVM_BUILTIN_TARGETS
-#   "x86_64-rovelstars-runixos;aarch64-rovelstars-runixos" CACHE STRING "" FORCE)
+#   "x86_64-rovelstars-linux-runixos;aarch64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
 
 # ── PGO and LTO ───────────────────────────────────────────────────────────────
-# Fast mode:  no PGO, no LTO — fastest possible build.
+# Fast mode:  no PGO, no LTO - fastest possible build.
 # Full mode:  PGO USE (from Stage 2 profiles) + ThinLTO.
 set(LLVM_BUILD_INSTRUMENTED OFF CACHE STRING "" FORCE)
 
 if(ROVELSTARS_STAGE3_FAST)
-  # No LTO — avoids the multi-hour ThinLTO code-generation phase that makes
+  # No LTO - avoids the multi-hour ThinLTO code-generation phase that makes
   # Stage 3 full-mode so slow.  The resulting toolchain is functionally
   # identical; only peak performance is lower.
   set(LLVM_ENABLE_LTO        OFF  CACHE STRING "" FORCE)
@@ -150,22 +150,22 @@ set(SANITIZER_CXX_ABI_INTREE ON CACHE BOOL "" FORCE)
 set(COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
 
 # Per-target RUNTIMES_ passthroughs (same as Stage 2).
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_USE_BUILTINS_LIBRARY ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXXABI_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXXABI_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LIBCXX_USE_COMPILER_RT      ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LIBUNWIND_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI         "libcxxabi" CACHE STRING "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_SANITIZER_CXX_ABI_INTREE  ON          CACHE BOOL   "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_COMPILER_RT_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_COMPILER_RT_ENABLE_STATIC_UNWINDER OFF CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_COMPILER_RT_USE_BUILTINS_LIBRARY ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LIBCXXABI_USE_LLVM_UNWINDER ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LIBCXXABI_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LIBCXX_USE_COMPILER_RT      ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LIBUNWIND_USE_COMPILER_RT   ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_COMPILER_RT_CXX_LIBRARY "libcxx" CACHE STRING "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_SANITIZER_CXX_ABI         "libcxxabi" CACHE STRING "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_SANITIZER_CXX_ABI_INTREE  ON          CACHE BOOL   "" FORCE)
 
 # RovelStars flag must also be forwarded per-target so the runtimes cmake
 # variable scan (get_cmake_property VARIABLES) picks it up and passes it
 # as -DRovelStars=ON to the runtimes sub-cmake.  Without this, GetClangResourceDir
 # uses the non-RovelStars path and computes wrong compiler-rt output dirs.
-set(RUNTIMES_x86_64-rovelstars-runixos_RovelStars ON CACHE BOOL "" FORCE)
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_RovelStars ON CACHE BOOL "" FORCE)
 
 # cmake package discovery path for find_package(LLVM) in the runtimes sub-build.
 # These absolute paths ensure that runtimes/CMakeLists.txt sets LLVM_TREE_AVAILABLE=ON
@@ -174,19 +174,19 @@ set(RUNTIMES_x86_64-rovelstars-runixos_RovelStars ON CACHE BOOL "" FORCE)
 # path relative to the runtimes binary dir, causing compiler-rt output-directory
 # calculations to produce doubled/wrong paths (e.g. Core/LibKit/../lib/clang/23
 # instead of Core/LibKit/clang/23).
-set(RUNTIMES_x86_64-rovelstars-runixos_CMAKE_PREFIX_PATH
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_PREFIX_PATH
   "${CMAKE_BINARY_DIR}/Core/LibKit" CACHE PATH "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LLVM_LIBRARY_DIR
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LLVM_LIBRARY_DIR
   "${CMAKE_BINARY_DIR}/Core/LibKit" CACHE PATH "" FORCE)
-set(RUNTIMES_x86_64-rovelstars-runixos_LLVM_TOOLS_BINARY_DIR
+set(RUNTIMES_x86_64-rovelstars-linux-runixos_LLVM_TOOLS_BINARY_DIR
   "${CMAKE_BINARY_DIR}/Core/Bin" CACHE PATH "" FORCE)
 
 # ── Builtins per-target settings ──────────────────────────────────────────────
-set(BUILTINS_x86_64-rovelstars-runixos_RovelStars               ON           CACHE BOOL   "" FORCE)
-set(BUILTINS_x86_64-rovelstars-runixos_CMAKE_INSTALL_LIBDIR     "Core/LibKit" CACHE STRING "" FORCE)
-set(BUILTINS_x86_64-rovelstars-runixos_CMAKE_INSTALL_BINDIR     "Core/Bin"    CACHE STRING "" FORCE)
+set(BUILTINS_x86_64-rovelstars-linux-runixos_RovelStars               ON           CACHE BOOL   "" FORCE)
+set(BUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_INSTALL_LIBDIR     "Core/LibKit" CACHE STRING "" FORCE)
+set(BUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_INSTALL_BINDIR     "Core/Bin"    CACHE STRING "" FORCE)
 # Sysroot is supplied by the caller via:
-#   -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/sysroot
+#   -DBUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/sysroot
 
 # ── RunixOS FHS install paths ─────────────────────────────────────────────────
 # Same layout as Stage 2.  Explicitly restated here for self-documentation.

@@ -21,7 +21,7 @@ add_library (ompd SHARED TargetValue.cpp omp-debug.cpp omp-state.cpp omp-icv.cpp
 if(TARGET cxxabi_shared)
   target_link_libraries(ompd PRIVATE cxxabi_shared)
 elseif(NOT COMPILER_RT_HAS_GCC_S_LIB)
-  # No libgcc_s on this platform (e.g. RunixOS) — link against libc++abi.
+  # No libgcc_s on this platform (e.g. RunixOS) - link against libc++abi.
   target_link_libraries(ompd PRIVATE -lc++abi -lunwind)
 endif()
 

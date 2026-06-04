@@ -12,11 +12,11 @@
 #   *.ral, *.rdl) don't exist on the build host yet, every CMake linker test
 #   fails. We use LLVM_RUNTIME_TARGETS="default" so the runtimes build
 #   targets the host, while LLVM_DEFAULT_TARGET_TRIPLE is still set to
-#   x86_64-rovelstars-runixos so `clang` defaults to emitting RunixOS code.
+#   x86_64-rovelstars-linux-runixos so `clang` defaults to emitting RunixOS code.
 #
 # Stage 2 notes:
 #   - Set LLVM_DEFAULT_TARGET_TRIPLE and LLVM_RUNTIME_TARGETS to
-#     x86_64-rovelstars-runixos (and aarch64-rovelstars-runixos for AArch64)
+#     x86_64-rovelstars-linux-runixos (and aarch64-rovelstars-linux-runixos for AArch64)
 #   - Provide CMAKE_SYSROOT pointing to a RunixOS sysroot image
 #   - Re-enable AArch64 builtins via LLVM_BUILTIN_TARGETS
 #   - Use the stage1 clang/lld as CMAKE_C_COMPILER / CMAKE_CXX_COMPILER
@@ -26,9 +26,11 @@ set(LLVM_TARGETS_TO_BUILD "X86;AArch64" CACHE STRING "" FORCE)
 set(LLVM_ENABLE_PROJECTS
   "clang;clang-tools-extra;lld;lldb;bolt;mlir;polly"
   CACHE STRING "" FORCE)
-set(LLVM_ENABLE_RUNTIMES
-  "compiler-rt;libcxx;libcxxabi;libunwind;openmp"
-  CACHE STRING "" FORCE)
+# Stage 1 builds clang and lld only. The runtimes (compiler-rt, libc++, etc.)
+# need a RunixOS libc sysroot to link against, and glibc is built AFTER this
+# stage. Build the runtimes in a later step once the sysroot exists (see
+# NOTE.md section 5 and RovelStars-runtimes.cmake).
+set(LLVM_ENABLE_RUNTIMES "" CACHE STRING "" FORCE)
 
 # ── Vendor / branding ─────────────────────────────────────────────────────────
 set(CLANG_VENDOR "RovelStars" CACHE STRING "" FORCE)
@@ -77,7 +79,7 @@ set(LLVM_USE_LINKER "lld" CACHE STRING "" FORCE)
 # -DCMAKE_C_COMPILER_TARGET=${LLVM_TARGET_TRIPLE} to the runtimes ExternalProject
 # sub-build. If this is a RunixOS triple, the freshly-built stage1 clang tries
 # to link runtimes test programs against RunixOS CRTs (*.ral, /Core/LibKit/...)
-# that don't exist on the build host — every CMake linker test fails.
+# that don't exist on the build host - every CMake linker test fails.
 #
 # Solution: leave LLVM_DEFAULT_TARGET_TRIPLE unset in Stage 1. CMake will
 # auto-detect the host triple (x86_64-unknown-linux-gnu). The stage1 compiler
@@ -86,25 +88,25 @@ set(LLVM_USE_LINKER "lld" CACHE STRING "" FORCE)
 # once a proper RunixOS sysroot is available.
 #
 # Uncomment in Stage 2:
-# set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
+# set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
 
 # ── Runtimes target ───────────────────────────────────────────────────────────
 # "default" = build runtimes for the host triple. Stage 2 changes this to
-# "x86_64-rovelstars-runixos" once a RunixOS sysroot is available.
+# "x86_64-rovelstars-linux-runixos" once a RunixOS sysroot is available.
 # set(LLVM_RUNTIME_TARGETS "default" CACHE STRING "" FORCE)
 
 # ── Builtins ──────────────────────────────────────────────────────────────────
 # Stage 1: build builtins for the host only ("default" = host triple).
 # In Stage 2:
-#   set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-runixos" CACHE STRING "" FORCE)
-#   set(BUILTINS_x86_64-rovelstars-runixos_RovelStars               ON           CACHE BOOL   "" FORCE)
-#   set(BUILTINS_x86_64-rovelstars-runixos_CMAKE_INSTALL_LIBDIR     "Core/LibKit" CACHE STRING "" FORCE)
-#   set(BUILTINS_x86_64-rovelstars-runixos_CMAKE_INSTALL_BINDIR     "Core/Bin"    CACHE STRING "" FORCE)
-#   set(BUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT            "/path/to/runixos-sysroot" CACHE PATH "" FORCE)
+#   set(LLVM_BUILTIN_TARGETS "x86_64-rovelstars-linux-runixos" CACHE STRING "" FORCE)
+#   set(BUILTINS_x86_64-rovelstars-linux-runixos_RovelStars               ON           CACHE BOOL   "" FORCE)
+#   set(BUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_INSTALL_LIBDIR     "Core/LibKit" CACHE STRING "" FORCE)
+#   set(BUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_INSTALL_BINDIR     "Core/Bin"    CACHE STRING "" FORCE)
+#   set(BUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT            "/path/to/runixos-sysroot" CACHE PATH "" FORCE)
 # AArch64 (Stage 2/3 only, requires its own sysroot):
-#   set(BUILTINS_aarch64-rovelstars-runixos_RovelStars               ON           CACHE BOOL   "" FORCE)
-#   set(BUILTINS_aarch64-rovelstars-runixos_CMAKE_INSTALL_LIBDIR     "Core/LibKit" CACHE STRING "" FORCE)
-#   set(BUILTINS_aarch64-rovelstars-runixos_CMAKE_SYSROOT            "/path/to/aarch64-sysroot" CACHE PATH "" FORCE)
+#   set(BUILTINS_aarch64-rovelstars-linux-runixos_RovelStars               ON           CACHE BOOL   "" FORCE)
+#   set(BUILTINS_aarch64-rovelstars-linux-runixos_CMAKE_INSTALL_LIBDIR     "Core/LibKit" CACHE STRING "" FORCE)
+#   set(BUILTINS_aarch64-rovelstars-linux-runixos_CMAKE_SYSROOT            "/path/to/aarch64-sysroot" CACHE PATH "" FORCE)
 set(LLVM_BUILTIN_TARGETS "default" CACHE STRING "" FORCE)
 
 # ── Reproducibility flags ────────────────────────────────────────────────────
@@ -164,7 +166,7 @@ set(CMAKE_INSTALL_SYSCONFDIR    "Core/Config"        CACHE STRING "" FORCE)
 set(CMAKE_INSTALL_INFODIR       "Core/Data/info"     CACHE STRING "" FORCE)
 
 # ── LLVM / Clang / LLD CMake package install dirs ────────────────────────────
-# These must be concrete paths — variable references like ${CMAKE_INSTALL_LIBDIR}
+# These must be concrete paths - variable references like ${CMAKE_INSTALL_LIBDIR}
 # are not resolved when the cache file is loaded before GNUInstallDirs runs.
 set(LLVM_INSTALL_PACKAGE_DIR    "Core/LibKit/cmake/llvm"   CACHE STRING "" FORCE)
 set(CLANG_INSTALL_PACKAGE_DIR   "Core/LibKit/cmake/clang"  CACHE STRING "" FORCE)

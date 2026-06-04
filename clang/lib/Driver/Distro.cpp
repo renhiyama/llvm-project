@@ -207,7 +207,7 @@ static Distro::DistroType GetDistro(llvm::vfs::FileSystem &VFS,
                                     const llvm::Triple &TargetOrHost) {
   // If we don't target Linux, no need to check the distro. This saves a few
   // OS calls.
-  if (!TargetOrHost.isOSLinux() && !TargetOrHost.isOSRunixOS())
+  if (!TargetOrHost.isOSLinux())
     return Distro::UnknownDistro;
 
   // True if we're backed by a real file system.
@@ -218,7 +218,7 @@ static Distro::DistroType GetDistro(llvm::vfs::FileSystem &VFS,
   // is cross-compiling from BSD or Windows to Linux, and it would be
   // meaningless to try to figure out the "distro" of the non-Linux host.
   llvm::Triple HostTriple(llvm::sys::getProcessTriple());
-  if (!HostTriple.isOSLinux() && !HostTriple.isOSRunixOS() && onRealFS)
+  if (!HostTriple.isOSLinux() && onRealFS)
     return Distro::UnknownDistro;
 
   if (onRealFS) {

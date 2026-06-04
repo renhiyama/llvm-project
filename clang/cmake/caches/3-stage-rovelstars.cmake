@@ -4,12 +4,12 @@
 # --------
 # This cache drives a 3-stage LLVM bootstrap targeting RunixOS:
 #
-#   Stage 1  (this file)  — built with the host compiler; produces clang/lld
+#   Stage 1  (this file)  - built with the host compiler; produces clang/lld
 #                           in build/stage2/tools/clang/stage2-bins/
-#   Stage 2  (RovelStars-stage2.cmake) — built with stage1 clang; cross-
-#                           compiles LLVM for x86_64-rovelstars-runixos with
+#   Stage 2  (RovelStars-stage2.cmake) - built with stage1 clang; cross-
+#                           compiles LLVM for x86_64-rovelstars-linux-runixos with
 #                           PGO instrumentation enabled (LLVM_ENABLE_PGO=GEN)
-#   Stage 3  (future)     — built with the PGO-instrumented stage2 toolchain;
+#   Stage 3  (future)     - built with the PGO-instrumented stage2 toolchain;
 #                           consumes merged *.profdata to produce the final
 #                           fully-optimised RunixOS-native LLVM release
 #
@@ -19,8 +19,8 @@
 #   cmake -G Ninja \
 #     -C clang/cmake/caches/3-stage-rovelstars.cmake \
 #     -DCMAKE_INSTALL_PREFIX=/path/to/install \
-#     -DRUNTIMES_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
-#     -DBUILTINS_x86_64-rovelstars-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
+#     -DRUNTIMES_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
+#     -DBUILTINS_x86_64-rovelstars-linux-runixos_CMAKE_SYSROOT=/path/to/runixos-sysroot \
 #     -B build/stage1 \
 #     llvm
 #
@@ -66,9 +66,9 @@ set(LLVM_TARGETS_TO_BUILD "Native" CACHE STRING "")
 # The canonical RunixOS target triple for this 3-stage build.
 # RovelStars.cmake leaves this unset (for stage1 host-runtimes safety); we
 # set it here so stage2/stage3 receive the correct default target.
-set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-runixos" CACHE STRING "")
+set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-rovelstars-linux-runixos" CACHE STRING "")
 
-# Stage 1 only needs clang and lld — the minimal toolchain required to drive
+# Stage 1 only needs clang and lld - the minimal toolchain required to drive
 # stage2.  Runtimes and builtins are built in stage2 against the RunixOS sysroot.
 set(LLVM_ENABLE_PROJECTS "clang;lld" CACHE STRING "")
 
@@ -88,7 +88,7 @@ set(CLANG_BOOTSTRAP_CMAKE_ARGS
 
 # Propagate the RunixOS install layout and identity flags into all bootstrap
 # stages.  CMAKE_SYSROOT and the per-target sysroot variables are intentionally
-# excluded here — they must be forwarded explicitly by the caller because the
+# excluded here - they must be forwarded explicitly by the caller because the
 # ExternalProject sub-build does not inherit the parent's CMakeCache.
 set(CLANG_BOOTSTRAP_PASSTHROUGH
   CMAKE_INSTALL_PREFIX
