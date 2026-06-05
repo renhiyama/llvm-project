@@ -332,7 +332,6 @@ protected:
     if (this->HasFloat128)
       Builder.defineMacro("__FLOAT128__");
   }
-
 public:
   HurdTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
       : OSTargetInfo<Target>(Triple, Opts) {
@@ -356,7 +355,6 @@ protected:
     // Linux defines; list based off of gcc output
     DefineStd(Builder, "unix", Opts);
     DefineStd(Builder, "linux", Opts);
-
     if (Triple.isAndroid()) {
       Builder.defineMacro("__ANDROID__", "1");
       this->PlatformName = "android";

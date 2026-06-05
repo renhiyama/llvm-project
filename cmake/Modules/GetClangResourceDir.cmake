@@ -17,22 +17,26 @@ function(get_clang_resource_dir out_var)
       string(REGEX MATCH "^[0-9]+" CLANG_VERSION_MAJOR ${PACKAGE_VERSION})
     endif()
     if(RovelStars)
+      # RunixOS puts the resource dir under LibKit (not lib). At build time the
+      # caller passes PREFIX (parent of LibKit) and it is prepended below; at
+      # install time there is no PREFIX, so use the configured libdir directly.
       if(ARG_PREFIX)
-        # Build-time: PREFIX is parent of LibKit, so use basename
-        set(ret_dir ${ARG_PREFIX}/LibKit/clang/${CLANG_VERSION_MAJOR})
+        set(ret_dir LibKit/clang/${CLANG_VERSION_MAJOR})
       else()
-        # Install-time: relative to CMAKE_INSTALL_PREFIX, needs full path
         set(ret_dir ${CMAKE_INSTALL_LIBDIR}/clang/${CLANG_VERSION_MAJOR})
       endif()
     else()
       set(ret_dir lib${LLVM_LIBDIR_SUFFIX}/clang/${CLANG_VERSION_MAJOR})
-      if(ARG_PREFIX)
-        set(ret_dir ${ARG_PREFIX}/${ret_dir})
-      endif()
     endif()
-    if(ARG_SUBDIR)
-      set(ret_dir ${ret_dir}/${ARG_SUBDIR})
-    endif()
+  endif()
+
+  # PREFIX/SUBDIR apply regardless of how ret_dir was computed (matches upstream;
+  # the RovelStars install-time branch above already excludes PREFIX itself).
+  if(ARG_PREFIX)
+    set(ret_dir ${ARG_PREFIX}/${ret_dir})
+  endif()
+  if(ARG_SUBDIR)
+    set(ret_dir ${ret_dir}/${ARG_SUBDIR})
   endif()
 
   set(${out_var} ${ret_dir} PARENT_SCOPE)

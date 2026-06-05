@@ -47,15 +47,11 @@ public:
   RuntimeLibType GetDefaultRuntimeLibType() const override;
   unsigned GetDefaultDwarfVersion() const override;
   CXXStdlibType GetDefaultCXXStdlibType() const override;
-  UnwindLibType GetDefaultUnwindLibType() const override;
   bool
   IsAArch64OutlineAtomicsDefault(const llvm::opt::ArgList &Args) const override;
   bool isPIEDefault(const llvm::opt::ArgList &Args) const override;
   bool IsMathErrnoDefault() const override;
   SanitizerMask getSupportedSanitizers() const override;
-  void AddClangCXXStdlibIncludeArgs(
-      const llvm::opt::ArgList &DriverArgs,
-      llvm::opt::ArgStringList &CC1Args) const override;
   void addProfileRTLibs(const llvm::opt::ArgList &Args,
                         llvm::opt::ArgStringList &CmdArgs) const override;
   std::string ComputeEffectiveClangTriple(

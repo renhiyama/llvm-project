@@ -392,10 +392,6 @@ ToolChain::CXXStdlibType Linux::GetDefaultCXXStdlibType() const {
   return ToolChain::CST_Libstdcxx;
 }
 
-ToolChain::UnwindLibType Linux::GetDefaultUnwindLibType() const {
-  return ToolChain::UNW_None;
-}
-
 bool Linux::HasNativeLLVMSupport() const { return true; }
 
 Tool *Linux::buildLinker() const { return new tools::gnutools::Linker(*this); }
@@ -772,8 +768,7 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     addSystemInclude(DriverArgs, CC1Args, *Path);
 
   // LOCAL_INCLUDE_DIR
-  addSystemInclude(DriverArgs, CC1Args,
-                   concat(SysRoot, "/usr/local/include"));
+  addSystemInclude(DriverArgs, CC1Args, concat(SysRoot, "/usr/local/include"));
   // TOOL_INCLUDE_DIR
   AddMultilibIncludeArgs(DriverArgs, CC1Args);
 
@@ -811,17 +806,6 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
 
   if (!DriverArgs.hasArg(options::OPT_nobuiltininc) && getTriple().isMusl())
     addSystemInclude(DriverArgs, CC1Args, ResourceDirInclude);
-}
-
-void Linux::AddClangCXXStdlibIncludeArgs(
-    const llvm::opt::ArgList &DriverArgs,
-    llvm::opt::ArgStringList &CC1Args) const {
-  if (DriverArgs.hasArg(options::OPT_nostdlibinc) ||
-      DriverArgs.hasArg(options::OPT_nostdincxx))
-    return;
-
-  // Fall back to the generic implementation for other Linux targets.
-  Generic_GCC::AddClangCXXStdlibIncludeArgs(DriverArgs, CC1Args);
 }
 
 void Linux::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
