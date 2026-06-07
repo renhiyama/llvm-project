@@ -147,23 +147,23 @@ set(LLVM_PARALLEL_LINK_JOBS     4 CACHE STRING "" FORCE)
 # strings so they resolve correctly when the cache is first loaded (before
 # GNUInstallDirs variables are computed by CMake).
 #
-# RunixOS filesystem layout:
+# RunixOS filesystem layout (matches the cmake fork's RunixOS platform):
 #   Binaries   -> Core/Bin
 #   Libraries  -> Core/LibKit
 #   Headers    -> Core/APIHeader
-#   Data       -> Core/Data
+#   Data       -> Core/StoreRoom
 #   Config     -> Core/Config
-#   Man pages  -> Core/Data/man
+#   Man pages  -> Core/StoreRoom/Manual
 #
-set(CMAKE_INSTALL_BINDIR        "Core/Bin"           CACHE STRING "" FORCE)
-set(CMAKE_INSTALL_SBINDIR       "Core/Bin"           CACHE STRING "" FORCE)
-set(CMAKE_INSTALL_LIBDIR        "Core/LibKit"        CACHE STRING "" FORCE)
-set(CMAKE_INSTALL_LIBEXECDIR    "Core/LibKit"        CACHE STRING "" FORCE)
-set(CMAKE_INSTALL_INCLUDEDIR    "Core/APIHeader"     CACHE STRING "" FORCE)
-set(CMAKE_INSTALL_DATADIR       "Core/Data"          CACHE STRING "" FORCE)
-set(CMAKE_INSTALL_MANDIR        "Core/Data/man"      CACHE STRING "" FORCE)
-set(CMAKE_INSTALL_SYSCONFDIR    "Core/Config"        CACHE STRING "" FORCE)
-set(CMAKE_INSTALL_INFODIR       "Core/Data/info"     CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_BINDIR        "Core/Bin"               CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_SBINDIR       "Core/Bin"               CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_LIBDIR        "Core/LibKit"            CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_LIBEXECDIR    "Core/LibKit"            CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_INCLUDEDIR    "Core/APIHeader"         CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_DATADIR       "Core/StoreRoom"         CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_MANDIR        "Core/StoreRoom/Manual"  CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_SYSCONFDIR    "Core/Config"            CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_INFODIR       "Core/StoreRoom/Info"    CACHE STRING "" FORCE)
 
 # ── LLVM / Clang / LLD CMake package install dirs ────────────────────────────
 # These must be concrete paths - variable references like ${CMAKE_INSTALL_LIBDIR}
